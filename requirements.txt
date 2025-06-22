@@ -1,0 +1,7 @@
+langgraph 
+langsmith
+langchain[openai]
+langchain_community
+pyowm
+setuptools
+pytz
