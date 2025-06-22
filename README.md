@@ -24,12 +24,11 @@ graph TD
   end
 
   subgraph Agentic Core
-    B[LangChain Agent]
-    B --> LLM[LLM GPT-4 via ChatOpenAI]
-    B --> M[Conversation Memory]
-    B --> T1[Tool: WeatherForecast]
-    B --> T2[Tool: UserPreferences]
-    B --> T3[Tool: LocalEvents]
+    LLM[LLM GPT-4 via ChatOpenAI]
+    LLM --> M[Conversation Memory]
+    LLM --> T1[Tool: WeatherForecast]
+    LLM --> T2[Tool: UserPreferences]
+    LLM --> T3[Tool: LocalEvents]
   end
 
   subgraph Tool Implementations
@@ -38,13 +37,11 @@ graph TD
     T3 --> E[Event APIs Eventbrite, Google Places]
   end
 
-  A -->|Prompt| B
-  B -->|Prompt Enrichment<br>and Tool Use| LLM
+  A -->|Prompt| LLM
   LLM -->|Tool Calls| T1
   LLM --> T2
   LLM --> T3
   T1 -->|Weather Data| LLM
   T2 -->|User Preferences| LLM
   T3 -->|Event Options| LLM
-  LLM -->|Final Recommendation| B
-  B -->|Generated Plan| A
+  LLM -->|Final Recommendation| A
