@@ -22,8 +22,9 @@ import os
 from langchain.chat_models import init_chat_model
 
 from weather_forecaster import get_weekend_forecast
+from metroparks_events_tool import get_metroparks_events
 
-tools = [get_weekend_forecast]
+tools = [get_weekend_forecast, get_metroparks_events]
 
 llm = init_chat_model("openai:gpt-4.1")
 llm_with_tools = llm.bind_tools(tools)
@@ -47,9 +48,12 @@ graph = graph_builder.compile()
 
 SYSTEM_PROMPT = (
     "You are a helpful family weekend planning assistant. "
+    "The family has 3 children, ages 3, 5, and 7. The kids go to bed at 8. "
     "Always ensure that any recommendations for plans take into account the weather forecast, "
     "and only suggest activities that are suitable for the expected weather conditions. "
-    "If the user asks for a plan, check the weather first and mention it in your response."
+    "If the user asks for a plan, check the weather first and mention it in your response. "
+    "Check for events in the Columbus Metro Parks and suggest them if they are suitable for the weather. "
+    "If the weather is not suitable for outdoor activities, suggest indoor alternatives. "
 )
 
 def stream_graph_updates(user_input: str):
@@ -70,8 +74,6 @@ while True:
             break
         stream_graph_updates(user_input)
     except:
-        # fallback if input() is not available
-        user_input = "What do you know about LangGraph?"
-        print("User: " + user_input)
-        stream_graph_updates(user_input)
+        print("An error occurred.")
+        # exit the loop on error
         break

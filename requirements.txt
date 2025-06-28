@@ -5,3 +5,4 @@ langchain_community
 pyowm
 setuptools
 pytz
+beautifulsoup4

@@ -6,22 +6,19 @@ from langchain_core.tools import tool
 owm = OWM(os.getenv("OPENWEATHERMAP_API_KEY"))
 mgr = owm.weather_manager()
 
-@tool("get_weekend_forecast", description="Get the weather forecast for the upcoming weekend in a specified location.")
+@tool("get_weather_forecast", description="Get the weather forecast for the upcoming weekend in a specified location.")
 def get_weekend_forecast(location: str = 'Columbus,US,OH') -> str:
     from datetime import datetime, timedelta
     from pytz import timezone
     print(f"Fetching weekend weather forecast for {location}...")
     eastern = timezone('US/Eastern')
     three_h_forecast = mgr.forecast_at_place(location, "3h").forecast
-    weekend_days = []
+    next_days = []
     today = datetime.now()
-    for i in range(0, 7):
+    for i in range(0, 3):
         day = today + timedelta(days=i)
-        if day.weekday() in [5, 6]:
-            weekend_days.append(day.date())
-            if len(weekend_days) == 2:
-                break
-    weather_by_day = {d: [] for d in weekend_days}
+        next_days.append(day.date())
+    weather_by_day = {d: [] for d in next_days}
     for w in three_h_forecast:
         w_time_utc = w.reference_time('date')
         w_time_est = w_time_utc.astimezone(eastern)
@@ -30,7 +27,7 @@ def get_weekend_forecast(location: str = 'Columbus,US,OH') -> str:
             if w_time in weather_by_day:
                 weather_by_day[w_time].append((w, w_time_est))
     output = []
-    for d in weekend_days:
+    for d in next_days:
         if not weather_by_day[d]:
             output.append(f"No forecast available for {d}.")
             continue
@@ -51,7 +48,6 @@ def get_weekend_forecast(location: str = 'Columbus,US,OH') -> str:
                 f"    Humidity: {humidity}%\n"
                 f"    Temperature: \n"
                 f"      - Current: {temperature.get('temp', 'N/A')}°F\n"
-                f"      - Feels like: {temperature.get('feels_like', 'N/A')}°F\n"
                 f"    Rain: {rain}\n"
                 f"    Heat index: {heat_index}\n"
                 f"    Cloud cover: {clouds}%"
