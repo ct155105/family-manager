@@ -10,6 +10,11 @@ This project is a **Generative AI-based assistant** that helps families decide w
 - 🌦 Weather-aware activity suggestions
 - 🗓 Calendar- and availability-aware recommendations
 - 📍 Event lookups from real-world APIs
+  - [x] Event lookup for Columbus Metro Parks
+  - [ ] TODO: Event lookup for Columbus Zoo
+  - [ ] TODO: Event lookup for The Wilds
+  - [ ] TODO: Event lookup for COSI
+  - [ ] TODO: Event lookup for Franklin County Conservatory
 - 👨‍👩‍👧 Personalized based on family preferences and feedback
 - ⚙️ Modular agent/tool design using LangChain
 
@@ -45,3 +50,4 @@ graph TD
   T2 -->|User Preferences| LLM
   T3 -->|Event Options| LLM
   LLM -->|Final Recommendation| A
+```
