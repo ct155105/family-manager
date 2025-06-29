@@ -22,7 +22,7 @@ import os
 from langchain.chat_models import init_chat_model
 
 from weather_forecaster import get_weekend_forecast
-from metroparks_events_tool import get_metroparks_events
+from events_tool_metroparks import get_metroparks_events
 
 tools = [get_weekend_forecast, get_metroparks_events]
 
