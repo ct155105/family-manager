@@ -4,12 +4,12 @@ from bs4 import BeautifulSoup
 import json
 
 # @tool("get_metroparks_events", description="Get a list of upcoming events from Columbus Metro Parks events website.")
-def get_metroparks_events() -> str:
+def get_events() -> str:
     """
     Scrapes the events page for a list of upcoming events.
     Returns a formatted string with event titles and dates.
     """
-    url = "https://www.metroparks.net/events-new/"
+    url = ""
     print(f"Fetching events from {url}...")
     response = requests.get(url)
     if response.status_code != 200:

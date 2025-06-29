@@ -51,3 +51,13 @@ graph TD
   T3 -->|Event Options| LLM
   LLM -->|Final Recommendation| A
 ```
+
+---
+
+## 🧩 HTML Parser Agent
+
+The project includes an **HTML Parser Agent** (`html_parser_agent.py`) that accelerates the process of extracting event information from new websites. This tool fetches relevant HTML content (such as the `<main>` tag or event containers) and can generate Python parser code to extract structured event data. It is especially useful for quickly adapting the assistant to new event sources, reducing manual effort and boilerplate when integrating new event feeds.
+
+- 🚀 Rapidly generate event parsers for new sites
+- 🛠️ Extracts and returns only the most relevant HTML for event listings
+- 🤖 Can auto-generate Python code to parse event data into structured formats

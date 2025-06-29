@@ -23,8 +23,18 @@ from langchain.chat_models import init_chat_model
 
 from weather_forecaster import get_weekend_forecast
 from events_tool_metroparks import get_metroparks_events
+from events_tool_zoo import get_zoo_events
+from datetime import datetime
+from langchain_core.tools import tool
 
-tools = [get_weekend_forecast, get_metroparks_events]
+@tool("get_today_date", description="Get today's date in YYYY-MM-DD format.")
+def get_today_date() -> str:
+    """
+    Returns today's date in YYYY-MM-DD format.
+    """
+    return datetime.now().strftime('%Y-%m-%d')
+
+tools = [get_weekend_forecast, get_metroparks_events, get_today_date, get_zoo_events]
 
 llm = init_chat_model("openai:gpt-4.1")
 llm_with_tools = llm.bind_tools(tools)
@@ -53,6 +63,7 @@ SYSTEM_PROMPT = (
     "and only suggest activities that are suitable for the expected weather conditions. "
     "If the user asks for a plan, check the weather first and mention it in your response. "
     "Check for events in the Columbus Metro Parks and suggest them if they are suitable for the weather. "
+    "Check for events at the Columbus Zoo and suggest them if they are suitable for the weather. "
     "If the weather is not suitable for outdoor activities, suggest indoor alternatives. "
 )
 
