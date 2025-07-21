@@ -28,6 +28,7 @@ from langchain.chat_models import init_chat_model
 from weather_forecaster import get_weekend_forecast
 from events_tool_metroparks import get_metroparks_events
 from events_tool_zoo import get_zoo_events
+from events_tool_lynd_fruit_farm import get_lynd_fruit_farm_events
 from email_client import gmail_send_message, gmail_create_draft
 from datetime import datetime, timedelta
 from langchain_core.tools import tool
@@ -41,7 +42,7 @@ def get_today_date() -> str:
     print(f"Today's date is {date_string}")
     return date_string
 
-tools = [get_weekend_forecast, get_metroparks_events, get_today_date, get_zoo_events]
+tools = [get_weekend_forecast, get_metroparks_events, get_today_date, get_zoo_events, get_lynd_fruit_farm_events]
 
 max_iterations = 5
 recursion_limit = 2 * max_iterations + 1
@@ -66,12 +67,15 @@ def create_messages(state: State) -> list:
         "If the user asks for a plan, check the weather first and mention it in your response. "
         "Check for events in the Columbus Metro Parks and suggest them if they are suitable for the weather. "
         "Check for events at the Columbus Zoo and suggest them if they are suitable for the weather. "
+        "Check for events at Lynd Fruit Farm and suggest them if they are suitable for the weather. "
         "If the weather is not suitable for outdoor activities, suggest indoor alternatives. "
+        "Recommend no more than 3 activities per day, and ensure they are family-friendly. "
+        "Recommend other activites around the Columbus area that are suitable for the weather. "
     )
     return {
         "messages": [
             {"role": "system", "content": SYSTEM_PROMPT},
-            {"role": "user", "content": "Please suggest some activities for tomorrow based on the weather and events."},
+            {"role": "user", "content": "Please suggest some activities for today based on the weather and events."},
         ]
     }
 
@@ -107,7 +111,7 @@ def create_gmail_draft_from_html(state: State) -> dict:
     """
     Calls gmail_create_draft to create a draft email with the generated newsletter HTML.
     """
-    subject = f"Teuschler Family Assistent - {(datetime.now() + timedelta(days=1)).strftime('%Y-%m-%d')}"
+    subject = f"Teuschler Family Assistent - {datetime.now().strftime('%Y-%m-%d')}"
     to = "christeuschler@gmail.com, lpisciotta@gmail.com"
     body = state.get("raw_message", "")
     html = state.get("html", "")
