@@ -11,7 +11,7 @@ This project is a **Generative AI-based assistant** that helps families decide w
 - 🗓 Calendar- and availability-aware recommendations
 - 📍 Event lookups from real-world APIs
   - [x] Event lookup for Columbus Metro Parks
-  - [ ] TODO: Event lookup for Columbus Zoo
+  - [x] TODO: Event lookup for Columbus Zoo
   - [ ] TODO: Event lookup for The Wilds
   - [ ] TODO: Event lookup for COSI
   - [ ] TODO: Event lookup for Franklin County Conservatory
