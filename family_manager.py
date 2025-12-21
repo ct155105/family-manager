@@ -47,7 +47,7 @@ tools = [get_weekend_forecast, get_metroparks_events, get_today_date, get_zoo_ev
 max_iterations = 5
 recursion_limit = 2 * max_iterations + 1
 agent = create_react_agent(
-    model="openai:gpt-4.1",
+    model="openai:gpt-5.2",
     tools=tools,
     
 )

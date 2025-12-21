@@ -61,3 +61,35 @@ The project includes an **HTML Parser Agent** (`html_parser_agent.py`) that acce
 - 🚀 Rapidly generate event parsers for new sites
 - 🛠️ Extracts and returns only the most relevant HTML for event listings
 - 🤖 Can auto-generate Python code to parse event data into structured formats
+
+---
+
+## 🚀 Running the Family Newsletter
+
+To generate and send the family weekend planning newsletter:
+
+1. **Ensure you have Google credentials set up:**
+   - You need `credentials.json` (OAuth client credentials from Google Cloud Console)
+   - On first run, you'll be prompted to authenticate via browser
+   - A `token.json` file will be created to store your access token
+
+2. **Activate the virtual environment:**
+   ```bash
+   source .venv/bin/activate
+   ```
+
+3. **Run the main script:**
+   ```bash
+   python family_manager.py
+   ```
+
+3. **What happens:**
+   - The agent checks today's weather forecast
+   - It searches for events at Columbus Metro Parks, Columbus Zoo, and Lynd Fruit Farm
+   - AI generates activity recommendations suitable for the weather and family (kids ages 3, 5, 7)
+   - The recommendations are formatted into a beautiful HTML newsletter
+   - A Gmail draft is automatically created and sent to the configured recipients (christeuschler@gmail.com, lpisciotta@gmail.com)
+
+4. **If you need to re-authenticate:**
+   - Delete `token.json` to force a new authentication flow
+   - Run the script again and complete the browser-based OAuth flow
