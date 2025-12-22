@@ -34,16 +34,11 @@ from family_config import get_children_age_string
 from datetime import datetime, timedelta
 from langchain_core.tools import tool
 
-@tool("get_today_date", description="Get today's date in YYYY-MM-DD format.")
-def get_today_date() -> str:
-    """
-    Returns today's date in YYYY-MM-DD format.
-    """
-    date_string = datetime.now().strftime('%Y-%m-%d')
-    print(f"Today's date is {date_string}")
-    return date_string
+# Note: get_today_date and get_weekend_forecast are no longer tools
+# They are called directly in create_messages() to pre-fetch context
+# This is more efficient than having the agent decide whether to call them
 
-tools = [get_weekend_forecast, get_metroparks_events, get_today_date, get_zoo_events, get_lynd_fruit_farm_events]
+tools = [get_metroparks_events, get_zoo_events, get_lynd_fruit_farm_events]
 
 max_iterations = 5
 recursion_limit = 2 * max_iterations + 1
@@ -55,29 +50,46 @@ agent = create_react_agent(
 
 def create_messages(state: State) -> list:
     """
-    Creates a list of messages to be used by the agent.
-    This function is called by the agent to generate the initial messages.
-    """
-    # Get dynamic children ages
-    age_string = get_children_age_string()
+    Creates messages with all necessary context pre-fetched.
 
-    SYSTEM_PROMPT = (
-        "You are a helpful family weekend planning assistant. "
-        f"The family has 3 children, ages {age_string}. The kids go to bed at 8. "
-        "Always ensure that any recommendations for plans take into account the weather forecast, "
-        "and only suggest activities that are suitable for the expected weather conditions. "
-        "If the user asks for a plan, check the weather first and mention it in your response. "
-        "Check for events in the Columbus Metro Parks and suggest them if they are suitable for the weather. "
-        "Check for events at the Columbus Zoo and suggest them if they are suitable for the weather. "
-        "Check for events at Lynd Fruit Farm and suggest them if they are suitable for the weather. "
-        "If the weather is not suitable for outdoor activities, suggest indoor alternatives. "
-        "Recommend no more than 3 activities per day, and ensure they are family-friendly. "
-        "Recommend other activites around the Columbus area that are suitable for the weather. "
-    )
+    Context is gathered here rather than via tools because:
+    - Weather is needed for 100% of executions
+    - Single location (Columbus, OH), single timeframe per run
+    - No multi-turn conversation in current design
+    - Faster, cheaper, more reliable than tool calls
+    - Agent can't forget to check critical context
+
+    This approach follows the "Static Context vs. Dynamic Actions" pattern:
+    - Static context (pre-fetched): weather, date, children's ages
+    - Dynamic actions (tools): event fetching based on agent's decision
+    """
+    # Pre-fetch all required context
+    age_string = get_children_age_string()
+    # Note: get_weekend_forecast is a @tool-decorated function
+    # We call .invoke() to execute it as a regular function
+    weather_forecast = get_weekend_forecast.invoke({})
+    today = datetime.now().strftime('%Y-%m-%d')
+
+    SYSTEM_PROMPT = f"""You are a family weekend planning assistant for Columbus, OH.
+
+CONTEXT:
+- Today's date: {today}
+- Children's ages: {age_string} (bedtime: 8pm)
+
+WEATHER FORECAST:
+{weather_forecast}
+
+TASK:
+Based on the weather above, suggest 3 family-friendly weekend activities.
+Check for events at Columbus Metro Parks, Columbus Zoo, and Lynd Fruit Farm.
+Ensure activities are appropriate for the children's ages and weather conditions.
+If weather is unsuitable for outdoor activities, prioritize indoor alternatives.
+"""
+
     return {
         "messages": [
             {"role": "system", "content": SYSTEM_PROMPT},
-            {"role": "user", "content": "Please suggest some activities for today based on the weather and events."},
+            {"role": "user", "content": "Please suggest activities for this weekend."},
         ]
     }
 
