@@ -9,19 +9,22 @@ from datetime import datetime
 from typing import List, Dict
 
 
-# Children data with birthdates
+# Children data with birthdates and interests
 CHILDREN = [
     {
         "name": "Grayson",
-        "birthdate": "2018-04-27"
+        "birthdate": "2018-04-27",
+        "interests": ["art", "drawing", "animals", "reptiles", "nature", "snakes", "science", "LEGO", "swimming", "performing arts"]
     },
     {
-        "name": "Child2",
-        "birthdate": "2019-12-03"
+        "name": "Madeline",
+        "birthdate": "2019-12-03",
+        "interests": ["art", "dancing", "animals"]
     },
     {
-        "name": "Child3",
-        "birthdate": "2022-02-22"
+        "name": "Chase",
+        "birthdate": "2022-02-22",
+        "interests": ["trucks", "trains", "animals", "playgrounds", "music"]
     }
 ]
 
@@ -82,3 +85,29 @@ def get_children_age_string() -> str:
         # For 3+ children: "7, 6, and 3"
         all_but_last = ", ".join(str(age) for age in ages[:-1])
         return f"{all_but_last}, and {ages[-1]}"
+
+
+def get_children_interests_string() -> str:
+    """
+    Get a formatted string of children's interests suitable for system prompts.
+
+    Returns:
+        str: Formatted string listing each child's interests
+
+    Example:
+        >>> interests_string = get_children_interests_string()
+        >>> print(interests_string)
+        "Grayson (age 7): animals, dinosaurs, science, LEGO, swimming
+        Child2 (age 6): princesses, art, dancing, animals, dress-up
+        Child3 (age 3): trucks, trains, animals, playgrounds, music"
+    """
+    ages = get_children_ages()
+    interests_lines = []
+
+    for i, child in enumerate(CHILDREN):
+        name = child["name"]
+        age = ages[i]
+        interests = ", ".join(child["interests"])
+        interests_lines.append(f"{name} (age {age}): {interests}")
+
+    return "\n".join(interests_lines)

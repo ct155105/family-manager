@@ -18,15 +18,17 @@ class TestCreateMessages:
     """Test that create_messages pre-fetches all required context"""
 
     @patch('family_manager.get_weekend_forecast')
+    @patch('family_manager.get_children_interests_string')
     @patch('family_manager.get_children_age_string')
     @patch('family_manager.datetime')
     def test_create_messages_prefetches_all_context(
-        self, mock_datetime, mock_age_string, mock_forecast
+        self, mock_datetime, mock_age_string, mock_interests_string, mock_forecast
     ):
         """Test that create_messages calls all context functions"""
         # Setup mocks
         mock_datetime.now.return_value.strftime.return_value = "2025-12-21"
         mock_age_string.return_value = "7, 6, and 3"
+        mock_interests_string.return_value = "Grayson (age 7): animals, dinosaurs\nChild2 (age 6): princesses, art"
         mock_forecast.invoke.return_value = "Sunny, 75F"
 
         from family_manager import create_messages
@@ -36,19 +38,22 @@ class TestCreateMessages:
 
         # Verify all context was pre-fetched
         mock_age_string.assert_called_once()
+        mock_interests_string.assert_called_once()
         mock_forecast.invoke.assert_called_once_with({})
         mock_datetime.now.assert_called()
 
     @patch('family_manager.get_weekend_forecast')
+    @patch('family_manager.get_children_interests_string')
     @patch('family_manager.get_children_age_string')
     @patch('family_manager.datetime')
     def test_create_messages_includes_weather_in_prompt(
-        self, mock_datetime, mock_age_string, mock_forecast
+        self, mock_datetime, mock_age_string, mock_interests_string, mock_forecast
     ):
         """Test that weather forecast is included in system prompt"""
         # Setup mocks
         mock_datetime.now.return_value.strftime.return_value = "2025-12-21"
         mock_age_string.return_value = "7, 6, and 3"
+        mock_interests_string.return_value = "Grayson (age 7): animals, dinosaurs\nChild2 (age 6): princesses, art"
         mock_forecast.invoke.return_value = "Rainy, 45F"
 
         from family_manager import create_messages
@@ -60,15 +65,17 @@ class TestCreateMessages:
         assert "Rainy, 45F" in system_prompt
 
     @patch('family_manager.get_weekend_forecast')
+    @patch('family_manager.get_children_interests_string')
     @patch('family_manager.get_children_age_string')
     @patch('family_manager.datetime')
     def test_create_messages_includes_date_in_prompt(
-        self, mock_datetime, mock_age_string, mock_forecast
+        self, mock_datetime, mock_age_string, mock_interests_string, mock_forecast
     ):
         """Test that today's date is included in system prompt"""
         # Setup mocks
         mock_datetime.now.return_value.strftime.return_value = "2025-12-21"
         mock_age_string.return_value = "7, 6, and 3"
+        mock_interests_string.return_value = "Grayson (age 7): animals, dinosaurs\nChild2 (age 6): princesses, art"
         mock_forecast.invoke.return_value = "Sunny, 75F"
 
         from family_manager import create_messages
@@ -80,35 +87,39 @@ class TestCreateMessages:
         assert "2025-12-21" in system_prompt
 
     @patch('family_manager.get_weekend_forecast')
+    @patch('family_manager.get_children_interests_string')
     @patch('family_manager.get_children_age_string')
     @patch('family_manager.datetime')
     def test_create_messages_includes_children_ages_in_prompt(
-        self, mock_datetime, mock_age_string, mock_forecast
+        self, mock_datetime, mock_age_string, mock_interests_string, mock_forecast
     ):
         """Test that children's ages are included in system prompt"""
         # Setup mocks
         mock_datetime.now.return_value.strftime.return_value = "2025-12-21"
         mock_age_string.return_value = "7, 6, and 3"
+        mock_interests_string.return_value = "Grayson (age 7): animals, dinosaurs\nChild2 (age 6): princesses, art"
         mock_forecast.invoke.return_value = "Sunny, 75F"
 
         from family_manager import create_messages
 
         result = create_messages({})
 
-        # Verify ages are in system prompt
+        # Verify ages are in system prompt (now via interests_string)
         system_prompt = result["messages"][0]["content"]
-        assert "7, 6, and 3" in system_prompt
+        assert "age 7" in system_prompt or "7, 6, and 3" in system_prompt
 
     @patch('family_manager.get_weekend_forecast')
+    @patch('family_manager.get_children_interests_string')
     @patch('family_manager.get_children_age_string')
     @patch('family_manager.datetime')
     def test_create_messages_returns_correct_structure(
-        self, mock_datetime, mock_age_string, mock_forecast
+        self, mock_datetime, mock_age_string, mock_interests_string, mock_forecast
     ):
         """Test that create_messages returns properly formatted messages"""
         # Setup mocks
         mock_datetime.now.return_value.strftime.return_value = "2025-12-21"
         mock_age_string.return_value = "7, 6, and 3"
+        mock_interests_string.return_value = "Grayson (age 7): animals, dinosaurs\nChild2 (age 6): princesses, art"
         mock_forecast.invoke.return_value = "Sunny, 75F"
 
         from family_manager import create_messages
@@ -124,15 +135,17 @@ class TestCreateMessages:
         assert isinstance(result["messages"][1]["content"], str)
 
     @patch('family_manager.get_weekend_forecast')
+    @patch('family_manager.get_children_interests_string')
     @patch('family_manager.get_children_age_string')
     @patch('family_manager.datetime')
     def test_create_messages_system_prompt_is_facts_not_instructions(
-        self, mock_datetime, mock_age_string, mock_forecast
+        self, mock_datetime, mock_age_string, mock_interests_string, mock_forecast
     ):
         """Test that system prompt contains facts, not instructions to call tools"""
         # Setup mocks
         mock_datetime.now.return_value.strftime.return_value = "2025-12-21"
         mock_age_string.return_value = "7, 6, and 3"
+        mock_interests_string.return_value = "Grayson (age 7): animals, dinosaurs\nChild2 (age 6): princesses, art"
         mock_forecast.invoke.return_value = "Sunny, 75F"
 
         from family_manager import create_messages
@@ -146,6 +159,29 @@ class TestCreateMessages:
 
         # SHOULD contain weather section
         assert "weather" in system_prompt.lower()
+
+    @patch('family_manager.get_weekend_forecast')
+    @patch('family_manager.get_children_interests_string')
+    @patch('family_manager.get_children_age_string')
+    @patch('family_manager.datetime')
+    def test_create_messages_includes_interests_in_prompt(
+        self, mock_datetime, mock_age_string, mock_interests_string, mock_forecast
+    ):
+        """Test that children's interests are included in system prompt"""
+        # Setup mocks
+        mock_datetime.now.return_value.strftime.return_value = "2025-12-21"
+        mock_age_string.return_value = "7, 6, and 3"
+        mock_interests_string.return_value = "Grayson (age 7): animals, dinosaurs, science"
+        mock_forecast.invoke.return_value = "Sunny, 75F"
+
+        from family_manager import create_messages
+
+        result = create_messages({})
+        system_prompt = result["messages"][0]["content"]
+
+        # Verify interests are in system prompt
+        assert "animals" in system_prompt.lower()
+        assert "dinosaurs" in system_prompt.lower()
 
 
 class TestToolsList:

@@ -30,7 +30,7 @@ from events_tool_metroparks import get_metroparks_events
 from events_tool_zoo import get_zoo_events
 from events_tool_lynd_fruit_farm import get_lynd_fruit_farm_events
 from email_client import gmail_send_message, gmail_create_draft
-from family_config import get_children_age_string
+from family_config import get_children_age_string, get_children_interests_string
 from datetime import datetime, timedelta
 from langchain_core.tools import tool
 
@@ -60,11 +60,12 @@ def create_messages(state: State) -> list:
     - Agent can't forget to check critical context
 
     This approach follows the "Static Context vs. Dynamic Actions" pattern:
-    - Static context (pre-fetched): weather, date, children's ages
+    - Static context (pre-fetched): weather, date, children's ages, interests
     - Dynamic actions (tools): event fetching based on agent's decision
     """
     # Pre-fetch all required context
     age_string = get_children_age_string()
+    interests_string = get_children_interests_string()
     # Note: get_weekend_forecast is a @tool-decorated function
     # We call .invoke() to execute it as a regular function
     weather_forecast = get_weekend_forecast.invoke({})
@@ -74,7 +75,8 @@ def create_messages(state: State) -> list:
 
 CONTEXT:
 - Today's date: {today}
-- Children's ages: {age_string} (bedtime: 8pm)
+- Children (bedtime: 8pm):
+{interests_string}
 
 WEATHER FORECAST:
 {weather_forecast}
@@ -82,7 +84,7 @@ WEATHER FORECAST:
 TASK:
 Based on the weather above, suggest 3 family-friendly weekend activities.
 Check for events at Columbus Metro Parks, Columbus Zoo, and Lynd Fruit Farm.
-Ensure activities are appropriate for the children's ages and weather conditions.
+Ensure activities are appropriate for the children's ages, interests, and weather conditions.
 If weather is unsuitable for outdoor activities, prioritize indoor alternatives.
 """
 

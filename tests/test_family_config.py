@@ -146,3 +146,80 @@ class TestGetChildrenAgeString:
         assert "7" in age_string
         assert "6" in age_string
         assert "3" in age_string
+
+
+class TestChildrenInterests:
+    """Test that children have interests defined and accessible"""
+
+    def test_children_have_interests_field(self):
+        """Test that each child has an interests field"""
+        from family_config import CHILDREN
+
+        for child in CHILDREN:
+            assert "interests" in child, f"Child {child.get('name', 'unknown')} missing 'interests' field"
+
+    def test_children_interests_are_lists(self):
+        """Test that interests are stored as lists"""
+        from family_config import CHILDREN
+
+        for child in CHILDREN:
+            assert isinstance(child["interests"], list), f"Child {child['name']}'s interests should be a list"
+
+    def test_children_interests_contain_strings(self):
+        """Test that interests are strings"""
+        from family_config import CHILDREN
+
+        for child in CHILDREN:
+            for interest in child["interests"]:
+                assert isinstance(interest, str), f"Interest '{interest}' for {child['name']} should be a string"
+
+    def test_children_have_at_least_one_interest(self):
+        """Test that each child has at least one interest defined"""
+        from family_config import CHILDREN
+
+        for child in CHILDREN:
+            assert len(child["interests"]) > 0, f"Child {child['name']} should have at least one interest"
+
+
+class TestGetChildrenInterestsString:
+    """Test helper function to format interests as string for system prompt"""
+
+    def test_get_children_interests_string_exists(self):
+        """Test that get_children_interests_string function exists"""
+        from family_config import get_children_interests_string
+        assert callable(get_children_interests_string)
+
+    def test_get_children_interests_string_returns_string(self):
+        """Test that function returns a string"""
+        from family_config import get_children_interests_string
+        interests_string = get_children_interests_string()
+        assert isinstance(interests_string, str)
+
+    def test_get_children_interests_string_includes_child_names(self):
+        """Test that output includes child names"""
+        from family_config import get_children_interests_string, CHILDREN
+        interests_string = get_children_interests_string()
+
+        for child in CHILDREN:
+            assert child["name"] in interests_string, f"Child {child['name']} should be in interests string"
+
+    def test_get_children_interests_string_includes_interests(self):
+        """Test that output includes actual interests"""
+        from family_config import get_children_interests_string, CHILDREN
+        interests_string = get_children_interests_string()
+
+        # Should include at least some interests from each child
+        all_interests = [interest for child in CHILDREN for interest in child["interests"]]
+
+        # At least half of all interests should appear in the string
+        interests_found = sum(1 for interest in all_interests if interest.lower() in interests_string.lower())
+        assert interests_found >= len(all_interests) / 2, "Should include most children's interests"
+
+    def test_get_children_interests_string_readable_format(self):
+        """Test that output is human-readable (contains commas or newlines)"""
+        from family_config import get_children_interests_string
+        interests_string = get_children_interests_string()
+
+        # Should have some formatting (commas, colons, or newlines)
+        has_formatting = any(char in interests_string for char in [',', ':', '\n', '-'])
+        assert has_formatting, "Interests string should be formatted for readability"
