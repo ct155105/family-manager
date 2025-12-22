@@ -30,6 +30,7 @@ from events_tool_metroparks import get_metroparks_events
 from events_tool_zoo import get_zoo_events
 from events_tool_lynd_fruit_farm import get_lynd_fruit_farm_events
 from email_client import gmail_send_message, gmail_create_draft
+from family_config import get_children_age_string
 from datetime import datetime, timedelta
 from langchain_core.tools import tool
 
@@ -57,11 +58,12 @@ def create_messages(state: State) -> list:
     Creates a list of messages to be used by the agent.
     This function is called by the agent to generate the initial messages.
     """
-
+    # Get dynamic children ages
+    age_string = get_children_age_string()
 
     SYSTEM_PROMPT = (
         "You are a helpful family weekend planning assistant. "
-        "The family has 3 children, ages 3, 5, and 7. The kids go to bed at 8. "
+        f"The family has 3 children, ages {age_string}. The kids go to bed at 8. "
         "Always ensure that any recommendations for plans take into account the weather forecast, "
         "and only suggest activities that are suitable for the expected weather conditions. "
         "If the user asks for a plan, check the weather first and mention it in your response. "

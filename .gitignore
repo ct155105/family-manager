@@ -1,6 +1,10 @@
 token.json
 credentials.json
 .venv
+venv
 dev.ipynb
 .env
 __pycache__
+.pytest_cache
+.claude/
+.vscode/
