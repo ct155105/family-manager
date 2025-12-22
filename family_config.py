@@ -14,15 +14,15 @@ CHILDREN = [
     {
         "name": "Grayson",
         "birthdate": "2018-04-27",
-        "interests": ["animals", "dinosaurs", "science", "LEGO", "swimming"]
+        "interests": ["art", "drawing", "animals", "reptiles", "nature", "snakes", "science", "LEGO", "swimming", "performing arts"]
     },
     {
-        "name": "Child2",
+        "name": "Madeline",
         "birthdate": "2019-12-03",
-        "interests": ["princesses", "art", "dancing", "animals", "dress-up"]
+        "interests": ["art", "dancing", "animals"]
     },
     {
-        "name": "Child3",
+        "name": "Chase",
         "birthdate": "2022-02-22",
         "interests": ["trucks", "trains", "animals", "playgrounds", "music"]
     }
