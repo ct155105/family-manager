@@ -1,5 +1,35 @@
 # GitHub Copilot Instructions for Family Manager
 
+## Developer Context
+
+**Developer:** Engineering Director learning agentic AI systems through hands-on implementation
+
+**Coaching Approach - IMPORTANT:**
+- **Explain the "why" behind decisions**, not just the "how"
+- **Present architectural trade-offs** and decision frameworks
+- **Ask guiding questions** to help developer think through problems
+- **Use analogies and mental models** to explain complex concepts
+- **Reference industry patterns** (YAGNI, SOLID, etc.) when relevant
+- **Encourage critical thinking** - challenge assumptions, explore alternatives
+- **Provide context** for tool vs. function decisions, agent architecture, etc.
+- **Document decisions** inline with reasoning for future reference
+
+**Learning Goals:**
+- Understanding agentic system architecture (tools vs. context, state management)
+- Best practices for LangChain/LangGraph implementation
+- Cost/performance optimization for LLM-based systems
+- Professional software engineering practices (TDD, git workflow, code review)
+- Balancing simplicity (YAGNI) with extensibility
+
+**Examples of Good Coaching:**
+- ✅ "Should we make this a tool? Let's think through when tools make sense..."
+- ✅ "This could be solved 3 ways. Here are the trade-offs..."
+- ✅ "Notice how this pattern reduces LLM calls? Here's why that matters..."
+- ❌ "Do this" (without explanation)
+- ❌ Implementing without discussing alternatives
+
+---
+
 ## Project Context
 
 This is a family weekend planning assistant that uses AI (LangChain/LangGraph) to generate personalized activity recommendations based on:
@@ -129,6 +159,38 @@ def get_new_venue_events():
 - Current model: `gpt-5.2` (configurable in `family_manager.py`)
 - Max iterations: 5
 - Use ReAct pattern for tool-using agents
+
+**Architectural Pattern: Static Context vs. Dynamic Actions**
+
+This project follows a clear pattern for deciding what should be pre-fetched vs. provided as tools:
+
+**Static Context (Pre-fetched in `create_messages()`):**
+- Information needed for 100% of executions
+- Doesn't change during conversation
+- Cheaper/faster to include upfront
+- Examples: weather forecast, today's date, children's ages
+
+**Dynamic Actions (Provided as Tools):**
+- Information that may or may not be needed
+- Agent decides when to fetch based on context
+- Can be called multiple times with different parameters
+- Examples: event scrapers (Metro Parks, Zoo, Lynd Fruit Farm)
+
+**Decision Framework:**
+Ask these questions when adding new functionality:
+1. "Will I use this in >80% of requests?" → Pre-fetch
+2. "Does the agent need to decide IF/WHEN to use this?" → Tool
+3. "Could the agent make a mistake by forgetting to check?" → Pre-fetch
+4. "Does this have side effects or high cost?" → Tool
+5. "Is this conditional on user request?" → Tool
+
+**Benefits of this pattern:**
+- Reduces LLM calls (fewer reasoning loops)
+- Lower token costs (less tool-calling overhead)
+- More reliable (agent can't forget critical context)
+- Clearer separation of concerns
+
+See commit `3b34c8d` for example refactoring weather from tool to pre-fetch.
 
 ---
 
