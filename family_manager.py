@@ -26,9 +26,11 @@ import os
 from langchain.chat_models import init_chat_model
 
 from weather_forecaster import get_weekend_forecast
-from events_tool_metroparks import get_metroparks_events
-from events_tool_zoo import get_zoo_events
-from events_tool_lynd_fruit_farm import get_lynd_fruit_farm_events
+from event_scrapers import (
+    get_metroparks_events,
+    get_zoo_events,
+    get_lynd_fruit_farm_events,
+)
 from email_client import gmail_send_message, gmail_create_draft
 from family_config import get_children_age_string, get_children_interests_string
 from datetime import datetime, timedelta
