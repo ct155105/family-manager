@@ -93,7 +93,10 @@ def get_new_venue_events():
 **Documentation:**
 - Every function needs a docstring explaining purpose, args, and return value
 - Complex logic needs inline comments
-- Update `/docs` when architecture changes
+- **CRITICAL: Update `/docs` files in the SAME commit as implementation**
+  - When adding scrapers → Update `docs/02-event-scrapers.md` status from ⏳ PLANNED to ✅ COMPLETED
+  - When changing features → Update relevant doc files to reflect new behavior
+  - Documentation updates are NOT optional - they're part of the Definition of Done
 
 **Error Handling:**
 - Always handle HTTP errors gracefully
@@ -109,9 +112,32 @@ def get_new_venue_events():
 
 ### 3. Web Scraping Best Practices
 
-**For Event Scrapers (`events_tool_*.py`):**
+**Two Implementation Approaches:**
+
+**1. AI-Assisted Scraping (PREFERRED for new scrapers):**
+- Use LangChain WebBaseLoader + gpt-4o-mini for content extraction
+- 10x faster to implement than traditional BeautifulSoup parsing
+- More resilient to minor HTML structure changes
+- Pattern:
+  ```python
+  from langchain_community.document_loaders import WebBaseLoader
+  from langchain.chat_models import init_chat_model
+
+  loader = WebBaseLoader(url)
+  docs = loader.load()
+
+  llm = init_chat_model(model="gpt-4o-mini", model_provider="openai", temperature=0)
+  response = llm.invoke(extraction_prompt)
+  ```
+- See `event_scrapers/events_tool_conservatory.py` for reference implementation
+
+**2. Traditional BeautifulSoup (Legacy scrapers only):**
+- Use for scrapers already implemented with BeautifulSoup
+- Consider migrating to AI-assisted approach when refactoring
+- Follow existing pattern in `event_scrapers/events_tool_zoo.py`
+
+**For All Event Scrapers (`event_scrapers/events_tool_*.py`):**
 - Always check HTTP status code before parsing
-- Use BeautifulSoup for HTML parsing
 - Return JSON string with consistent schema:
   ```json
   [
@@ -128,7 +154,6 @@ def get_new_venue_events():
   ```
 - Return `"No events found."` if page has no events
 - Handle malformed HTML without crashing
-- Follow existing pattern in `events_tool_zoo.py` and `events_tool_metroparks.py`
 
 **Website Changes:**
 - Scrapers WILL break when websites redesign
@@ -217,8 +242,11 @@ See commit `3b34c8d` for example refactoring weather from tool to pre-fetch.
 family-manager/
 ├── family_manager.py          # Main agent workflow
 ├── weather_forecaster.py      # Weather tool
-├── events_tool_*.py          # Event scrapers (one per venue)
 ├── email_client.py           # Gmail integration
+├── event_scrapers/           # Event scrapers package
+│   ├── __init__.py          # Exports all scrapers
+│   ├── events_tool_*.py     # Individual venue scrapers
+│   └── scraper_template.py  # Template for new scrapers
 ├── config/                   # Configuration files
 ├── database/                 # Firestore clients (future)
 ├── tests/                    # Test files
@@ -230,8 +258,8 @@ family-manager/
 ```
 
 **Naming Conventions:**
-- Event scrapers: `events_tool_[venue_name].py`
-- Tool functions: `get_[venue]_events()`
+- Event scrapers: `event_scrapers/events_tool_[venue_name].py`
+- Tool functions: `get_[venue]_events()` or `get_[venue]_info()`
 - Test files: `test_[module_name].py`
 - Test functions: `test_[specific_functionality]()`
 
@@ -257,7 +285,10 @@ family-manager/
 - Run tests: `pytest`
 - Check coverage: `pytest --cov=.`
 - Verify no secrets in code
-- Update docs if needed
+- **REQUIRED: Update docs in `/docs` to reflect implementation changes**
+  - Mark tasks as ✅ COMPLETED in task tracking docs
+  - Update code examples to match implementation
+  - Add implementation notes and dates
 
 ---
 
@@ -359,18 +390,28 @@ IS_PRODUCTION = os.getenv("ENVIRONMENT") == "production"
 
 ---
 
-### 12. Documentation
+### 12. Documentation - CRITICAL REQUIREMENT
 
-**Update When:**
-- Adding new venues → Update `docs/02-event-scrapers.md`
-- Changing AI behavior → Update `docs/03-ai-improvements.md`
+**Documentation is NOT optional - it's part of the Definition of Done**
+
+**Update in SAME commit as implementation:**
+- Adding new venues → Update `docs/02-event-scrapers.md` (mark ✅ COMPLETED, add date, update "What It Scrapes")
+- Changing AI behavior → Update `docs/03-model-evals.md` or create new doc
 - Modifying deployment → Update `docs/04-deployment-architecture.md`
 - Adding family features → Update `docs/01-personalization-and-state.md`
+
+**Documentation Checklist:**
+- ✅ Task status updated from ⏳ PLANNED to ✅ COMPLETED
+- ✅ Implementation date added (e.g., "Implemented: 2025-12-22")
+- ✅ Code examples match actual implementation
+- ✅ Implementation notes added (e.g., "Uses AI-assisted scraping, not BeautifulSoup")
+- ✅ Architecture diagrams reflect current reality
 
 **Keep Current:**
 - Code examples in docs should match actual implementation
 - Architecture diagrams reflect reality
 - Task statuses updated when completed
+- **NEVER commit code without updating corresponding documentation**
 
 ---
 
@@ -390,13 +431,15 @@ IS_PRODUCTION = os.getenv("ENVIRONMENT") == "production"
    pytest tests/test_event_scrapers.py::TestNewVenueScraper -v
    ```
 
-3. **Create scraper file** `events_tool_new_venue.py`:
+3. **Create scraper file** `event_scrapers/events_tool_new_venue.py`:
    ```python
+   from langchain_community.document_loaders import WebBaseLoader
    from langchain_core.tools import tool
-   
+   from langchain.chat_models import init_chat_model
+
    @tool("get_new_venue_events", description="...")
    def get_new_venue_events() -> str:
-       # Implementation
+       # AI-assisted implementation
    ```
 
 4. **Run test until it passes:**
@@ -404,20 +447,30 @@ IS_PRODUCTION = os.getenv("ENVIRONMENT") == "production"
    pytest tests/test_event_scrapers.py::TestNewVenueScraper -v
    ```
 
-5. **Import in `family_manager.py`:**
+5. **Update package exports** in `event_scrapers/__init__.py`:
    ```python
-   from events_tool_new_venue import get_new_venue_events
+   from event_scrapers.events_tool_new_venue import get_new_venue_events
+   __all__ = [..., 'get_new_venue_events']
+   ```
+
+6. **Import in `family_manager.py`:**
+   ```python
+   from event_scrapers import get_new_venue_events
    tools = [..., get_new_venue_events]
    ```
 
-6. **Update system prompt** to mention new venue
+7. **Update system prompt** to mention new venue
 
-7. **Test end-to-end:**
+8. **Test end-to-end:**
    ```bash
    python family_manager.py
    ```
 
-8. **Update documentation** in `docs/02-event-scrapers.md`
+9. **REQUIRED: Update documentation** in `docs/02-event-scrapers.md`:
+   - Change status from ⏳ PLANNED to ✅ COMPLETED
+   - Add implementation date
+   - Update "What to Scrape" to "What It Scrapes"
+   - Add any implementation notes
 
 ---
 
@@ -455,7 +508,11 @@ Before submitting code, verify:
 - ✅ No secrets committed
 - ✅ Error handling in place
 - ✅ Logging for debugging
-- ✅ Documentation updated
+- ✅ **CRITICAL: Documentation updated in `/docs` (SAME commit as code)**
+  - Task status changed from ⏳ PLANNED to ✅ COMPLETED
+  - Implementation date added
+  - Code examples updated to match implementation
+  - Implementation notes added
 - ✅ Conventional commit message
 
 ---
@@ -480,7 +537,7 @@ Before submitting code, verify:
 
 ---
 
-**Last Updated:** December 21, 2025  
-**Project Version:** 1.0  
-**Python Version:** 3.12  
+**Last Updated:** December 22, 2025
+**Project Version:** 1.0
+**Python Version:** 3.12
 **AI Model:** GPT-5.2
