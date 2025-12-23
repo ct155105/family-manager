@@ -1,8 +1,8 @@
 """
-Franklin Park Conservatory Events Scraper
+Kings Island Events Scraper
 
-Uses AI-assisted web scraping to extract event information from Franklin Park Conservatory's website.
-This approach is more resilient to minor website changes compared to traditional HTML parsing.
+Uses AI-assisted web scraping to extract event information from Kings Island.
+Note: 1h 45min from Columbus - seasonal operation, weather-dependent.
 """
 
 from langchain_community.document_loaders import WebBaseLoader
@@ -12,16 +12,16 @@ import json
 import os
 
 
-@tool("get_conservatory_events", description="Get upcoming events from Franklin Park Conservatory in Columbus, OH. Indoor conservatory plus outdoor gardens - good rain backup option.")
-def get_conservatory_events() -> str:
+@tool("get_kings_island_events", description="Get events from Kings Island amusement park. 1h 45min from Columbus, seasonal operation, special events like Halloween Haunt and WinterFest.")
+def get_kings_island_events() -> str:
     """
-    Scrapes Franklin Park Conservatory events page using AI-assisted extraction.
-    Returns a JSON string with event details.
+    Scrapes Kings Island events page using AI-assisted extraction.
+    Returns operating calendar, special events, and seasonal offerings.
 
     Returns:
         str: JSON array of events or error message
     """
-    url = "https://www.fpconservatory.org/events/"
+    url = "https://www.visitkingsisland.com/events"
     print(f"Fetching events from {url}...")
 
     try:
@@ -42,22 +42,28 @@ def get_conservatory_events() -> str:
         )
 
         # Prompt for structured data extraction
-        extraction_prompt = f"""Extract all upcoming events from this Franklin Park Conservatory events webpage.
+        extraction_prompt = f"""Extract upcoming events and operating information from this Kings Island webpage.
 
-For each event, extract:
+For each event or operating period, extract:
 - title: Event name
-- date: Event date (keep original format from page)
-- time: Event time if available
-- description: Brief description if available
-- age_group: Target audience (e.g., "All Ages", "21+ Only")
-- cost: Admission cost or pricing details if mentioned
-- venue: Always "Franklin Park Conservatory"
-- address: Always "1777 E Broad St, Columbus, OH 43203"
+- date: Event dates or operating dates
+- time: Operating hours if specified
+- description: Event description
+- type: Type (e.g., "Seasonal Event", "Operating Calendar", "Special Event", "Holiday Event")
+- age_requirements: Any height/age requirements for rides if mentioned
+- cost: Ticket pricing if mentioned
+- venue: Always "Kings Island"
+- address: Always "6300 Kings Island Dr, Mason, OH 45040"
+- notes: Important details (weather-dependent, seasonal, height requirements, reservations, etc.)
 
-Return ONLY a valid JSON array of events. Each event should be a JSON object with the fields above.
+Return ONLY a valid JSON array. Each event should be a JSON object with the fields above.
 If a field is not available, use an empty string.
 
-Only include events that are clearly listed on the page. Do not make up events.
+Focus on:
+1. Special seasonal events (Halloween Haunt, WinterFest, etc.)
+2. Operating calendar/schedule
+3. Special shows or entertainment
+4. New rides or attractions
 
 Webpage content:
 {page_content[:8000]}
@@ -65,14 +71,16 @@ Webpage content:
 Return format:
 [
   {{
-    "title": "Event Name",
-    "date": "Jan 4",
-    "time": "",
-    "description": "Event description",
-    "age_group": "All Ages",
-    "cost": "Free with Columbus or Franklin County ID",
-    "venue": "Franklin Park Conservatory",
-    "address": "1777 E Broad St, Columbus, OH 43203"
+    "title": "Halloween Haunt",
+    "date": "Select nights September - October",
+    "time": "7:00 PM - 1:00 AM",
+    "description": "Haunted mazes, scare zones...",
+    "type": "Seasonal Event",
+    "age_requirements": "Not recommended for children under 13",
+    "cost": "Separate ticket or season pass",
+    "venue": "Kings Island",
+    "address": "6300 Kings Island Dr, Mason, OH 45040",
+    "notes": "Seasonal - fall only. Weather permitting."
   }}
 ]
 """

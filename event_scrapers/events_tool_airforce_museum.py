@@ -1,8 +1,8 @@
 """
-Franklin Park Conservatory Events Scraper
+National Museum of the US Air Force Events Scraper
 
-Uses AI-assisted web scraping to extract event information from Franklin Park Conservatory's website.
-This approach is more resilient to minor website changes compared to traditional HTML parsing.
+Uses AI-assisted web scraping to extract event information from the Air Force Museum.
+Note: 1 hour from Columbus (Dayton) - FREE admission, indoor venue.
 """
 
 from langchain_community.document_loaders import WebBaseLoader
@@ -12,16 +12,16 @@ import json
 import os
 
 
-@tool("get_conservatory_events", description="Get upcoming events from Franklin Park Conservatory in Columbus, OH. Indoor conservatory plus outdoor gardens - good rain backup option.")
-def get_conservatory_events() -> str:
+@tool("get_airforce_museum_events", description="Get events from National Museum of the US Air Force in Dayton. 1 hour from Columbus, FREE admission, indoor venue with IMAX theater.")
+def get_airforce_museum_events() -> str:
     """
-    Scrapes Franklin Park Conservatory events page using AI-assisted extraction.
-    Returns a JSON string with event details.
+    Scrapes Air Force Museum events page using AI-assisted extraction.
+    Returns special events, IMAX schedule, and temporary exhibits.
 
     Returns:
         str: JSON array of events or error message
     """
-    url = "https://www.fpconservatory.org/events/"
+    url = "https://www.nationalmuseum.af.mil/Visit/Events/"
     print(f"Fetching events from {url}...")
 
     try:
@@ -42,22 +42,29 @@ def get_conservatory_events() -> str:
         )
 
         # Prompt for structured data extraction
-        extraction_prompt = f"""Extract all upcoming events from this Franklin Park Conservatory events webpage.
+        extraction_prompt = f"""Extract all upcoming events from this National Museum of the US Air Force webpage.
 
 For each event, extract:
 - title: Event name
-- date: Event date (keep original format from page)
-- time: Event time if available
-- description: Brief description if available
-- age_group: Target audience (e.g., "All Ages", "21+ Only")
-- cost: Admission cost or pricing details if mentioned
-- venue: Always "Franklin Park Conservatory"
-- address: Always "1777 E Broad St, Columbus, OH 43203"
+- date: Event date or date range
+- time: Event time if specified
+- description: Event description
+- type: Type (e.g., "Special Event", "IMAX Film", "Temporary Exhibit", "Educational Program")
+- age_requirements: Any age recommendations
+- cost: "FREE" for general admission, or IMAX ticket price if applicable
+- venue: Always "National Museum of the US Air Force"
+- address: Always "1100 Spaatz St, Wright-Patterson AFB, OH 45433"
+- notes: Important details (registration required, capacity limits, etc.)
 
-Return ONLY a valid JSON array of events. Each event should be a JSON object with the fields above.
+Return ONLY a valid JSON array. Each event should be a JSON object with the fields above.
 If a field is not available, use an empty string.
 
-Only include events that are clearly listed on the page. Do not make up events.
+Focus on:
+1. Special events and programs
+2. IMAX theater schedule
+3. Temporary exhibits
+4. Educational programs
+5. Holiday events
 
 Webpage content:
 {page_content[:8000]}
@@ -65,14 +72,16 @@ Webpage content:
 Return format:
 [
   {{
-    "title": "Event Name",
-    "date": "Jan 4",
-    "time": "",
-    "description": "Event description",
-    "age_group": "All Ages",
-    "cost": "Free with Columbus or Franklin County ID",
-    "venue": "Franklin Park Conservatory",
-    "address": "1777 E Broad St, Columbus, OH 43203"
+    "title": "IMAX: Top Gun Maverick",
+    "date": "Daily",
+    "time": "2:00 PM, 5:00 PM",
+    "description": "Experience the thrilling...",
+    "type": "IMAX Film",
+    "age_requirements": "PG-13",
+    "cost": "$9 adult, $7 child",
+    "venue": "National Museum of the US Air Force",
+    "address": "1100 Spaatz St, Wright-Patterson AFB, OH 45433",
+    "notes": "Museum admission is FREE, IMAX tickets separate"
   }}
 ]
 """

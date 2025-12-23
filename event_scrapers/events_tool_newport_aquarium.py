@@ -1,8 +1,8 @@
 """
-Franklin Park Conservatory Events Scraper
+Newport Aquarium Events Scraper
 
-Uses AI-assisted web scraping to extract event information from Franklin Park Conservatory's website.
-This approach is more resilient to minor website changes compared to traditional HTML parsing.
+Uses AI-assisted web scraping to extract event information from Newport Aquarium.
+Note: 2 hours from Columbus (near Cincinnati) - indoor venue, good for any weather.
 """
 
 from langchain_community.document_loaders import WebBaseLoader
@@ -12,16 +12,16 @@ import json
 import os
 
 
-@tool("get_conservatory_events", description="Get upcoming events from Franklin Park Conservatory in Columbus, OH. Indoor conservatory plus outdoor gardens - good rain backup option.")
-def get_conservatory_events() -> str:
+@tool("get_newport_aquarium_events", description="Get events from Newport Aquarium near Cincinnati. 2 hours from Columbus, indoor venue with animal encounters and exhibits.")
+def get_newport_aquarium_events() -> str:
     """
-    Scrapes Franklin Park Conservatory events page using AI-assisted extraction.
-    Returns a JSON string with event details.
+    Scrapes Newport Aquarium events page using AI-assisted extraction.
+    Returns animal encounters, special exhibits, and programs.
 
     Returns:
         str: JSON array of events or error message
     """
-    url = "https://www.fpconservatory.org/events/"
+    url = "https://www.newportaquarium.com/events"
     print(f"Fetching events from {url}...")
 
     try:
@@ -42,22 +42,28 @@ def get_conservatory_events() -> str:
         )
 
         # Prompt for structured data extraction
-        extraction_prompt = f"""Extract all upcoming events from this Franklin Park Conservatory events webpage.
+        extraction_prompt = f"""Extract all upcoming events and experiences from this Newport Aquarium webpage.
 
-For each event, extract:
-- title: Event name
-- date: Event date (keep original format from page)
-- time: Event time if available
-- description: Brief description if available
-- age_group: Target audience (e.g., "All Ages", "21+ Only")
-- cost: Admission cost or pricing details if mentioned
-- venue: Always "Franklin Park Conservatory"
-- address: Always "1777 E Broad St, Columbus, OH 43203"
+For each event or experience, extract:
+- title: Event/encounter name
+- date: Event date or "Daily" if ongoing
+- time: Time if specified
+- description: What visitors can experience
+- type: Type (e.g., "Animal Encounter", "Special Event", "Exhibit", "Show")
+- age_requirements: Any age/height requirements
+- cost: Pricing if mentioned (often additional fee beyond admission)
+- venue: Always "Newport Aquarium"
+- address: Always "1 Levee Way, Newport, KY 41071"
+- notes: Important details (reservations required, weather-dependent, etc.)
 
-Return ONLY a valid JSON array of events. Each event should be a JSON object with the fields above.
+Return ONLY a valid JSON array. Each item should be a JSON object with the fields above.
 If a field is not available, use an empty string.
 
-Only include events that are clearly listed on the page. Do not make up events.
+Focus on:
+1. Animal encounters and interactions
+2. Special exhibits
+3. Shows and presentations
+4. Special events
 
 Webpage content:
 {page_content[:8000]}
@@ -65,14 +71,16 @@ Webpage content:
 Return format:
 [
   {{
-    "title": "Event Name",
-    "date": "Jan 4",
-    "time": "",
-    "description": "Event description",
-    "age_group": "All Ages",
-    "cost": "Free with Columbus or Franklin County ID",
-    "venue": "Franklin Park Conservatory",
-    "address": "1777 E Broad St, Columbus, OH 43203"
+    "title": "Shark Bridge",
+    "date": "Daily",
+    "time": "During operating hours",
+    "description": "Walk across a rope bridge over shark tank...",
+    "type": "Exhibit",
+    "age_requirements": "",
+    "cost": "Included with admission",
+    "venue": "Newport Aquarium",
+    "address": "1 Levee Way, Newport, KY 41071",
+    "notes": "Indoor exhibit"
   }}
 ]
 """

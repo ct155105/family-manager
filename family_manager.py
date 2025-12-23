@@ -27,12 +27,20 @@ from langchain.chat_models import init_chat_model
 
 from weather_forecaster import get_weekend_forecast
 from event_scrapers import (
+    # Legacy scrapers
     get_metroparks_events,
     get_zoo_events,
     get_lynd_fruit_farm_events,
+    # AI-assisted Priority 1 (Columbus area)
     get_conservatory_events,
     get_olentangy_caverns_info,
     get_wilds_events,
+    # AI-assisted Priority 2 (Regional)
+    get_cincinnati_zoo_events,
+    get_newport_aquarium_events,
+    get_airforce_museum_events,
+    get_kings_island_events,
+    get_hocking_hills_info,
 )
 from email_client import gmail_send_message, gmail_create_draft
 from family_config import get_children_age_string, get_children_interests_string
@@ -44,12 +52,20 @@ from langchain_core.tools import tool
 # This is more efficient than having the agent decide whether to call them
 
 tools = [
+    # Legacy scrapers
     get_metroparks_events,
     get_zoo_events,
     get_lynd_fruit_farm_events,
+    # AI-assisted Priority 1 (Columbus area)
     get_conservatory_events,
     get_olentangy_caverns_info,
     get_wilds_events,
+    # AI-assisted Priority 2 (Regional: 1-2 hour drive)
+    get_cincinnati_zoo_events,
+    get_newport_aquarium_events,
+    get_airforce_museum_events,
+    get_kings_island_events,
+    get_hocking_hills_info,
 ]
 
 max_iterations = 5
@@ -97,15 +113,25 @@ TASK:
 Based on the weather above, suggest 3 family-friendly weekend activities.
 
 AVAILABLE VENUES (check for events using your tools):
+
+Columbus Area (< 1 hour):
 - Columbus Metro Parks (outdoor, various locations)
 - Columbus Zoo and Aquarium (mostly outdoor, some indoor areas)
 - Lynd Fruit Farm (outdoor, seasonal activities)
-- Franklin Park Conservatory (INDOOR - great for bad weather!)
+- Franklin Park Conservatory (indoor conservatory + outdoor gardens, good rain backup)
 - Olentangy Caverns (cave tours, 54°F year-round)
-- The Wilds (1.5 hour drive, safari tours - best for full-day trips)
+
+Regional Attractions (1-2 hours):
+- The Wilds (1.5 hours, safari tours - full-day trip)
+- National Museum of the US Air Force (Dayton, 1 hour, FREE admission, indoor + IMAX)
+- Hocking Hills State Park (1 hour, hiking/waterfalls, highly weather-dependent)
+- Cincinnati Zoo (1h 45min, Festival of Lights in winter)
+- Newport Aquarium (2 hours near Cincinnati, indoor, animal encounters)
+- Kings Island (1h 45min, amusement park, seasonal operation)
 
 Ensure activities are appropriate for the children's ages, interests, and weather conditions.
-If weather is unsuitable for outdoor activities, prioritize indoor alternatives like Franklin Park Conservatory.
+Prioritize closer venues for short trips. Regional venues work best for full-day excursions.
+If weather is unsuitable for outdoor activities, suggest indoor venues (Conservatory, Air Force Museum, Newport Aquarium).
 """
 
     return {

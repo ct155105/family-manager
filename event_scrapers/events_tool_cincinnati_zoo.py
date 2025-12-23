@@ -1,8 +1,8 @@
 """
-Franklin Park Conservatory Events Scraper
+Cincinnati Zoo Events Scraper
 
-Uses AI-assisted web scraping to extract event information from Franklin Park Conservatory's website.
-This approach is more resilient to minor website changes compared to traditional HTML parsing.
+Uses AI-assisted web scraping to extract event information from Cincinnati Zoo.
+Note: 1h 45min drive from Columbus - best for full-day trips.
 """
 
 from langchain_community.document_loaders import WebBaseLoader
@@ -12,16 +12,16 @@ import json
 import os
 
 
-@tool("get_conservatory_events", description="Get upcoming events from Franklin Park Conservatory in Columbus, OH. Indoor conservatory plus outdoor gardens - good rain backup option.")
-def get_conservatory_events() -> str:
+@tool("get_cincinnati_zoo_events", description="Get upcoming events from Cincinnati Zoo & Botanical Garden. 1h 45min from Columbus, popular for Festival of Lights in winter.")
+def get_cincinnati_zoo_events() -> str:
     """
-    Scrapes Franklin Park Conservatory events page using AI-assisted extraction.
-    Returns a JSON string with event details.
+    Scrapes Cincinnati Zoo events page using AI-assisted extraction.
+    Returns special events, shows, and seasonal offerings.
 
     Returns:
         str: JSON array of events or error message
     """
-    url = "https://www.fpconservatory.org/events/"
+    url = "https://cincinnatizoo.org/events/"
     print(f"Fetching events from {url}...")
 
     try:
@@ -42,22 +42,28 @@ def get_conservatory_events() -> str:
         )
 
         # Prompt for structured data extraction
-        extraction_prompt = f"""Extract all upcoming events from this Franklin Park Conservatory events webpage.
+        extraction_prompt = f"""Extract all upcoming events from this Cincinnati Zoo events webpage.
 
 For each event, extract:
 - title: Event name
-- date: Event date (keep original format from page)
+- date: Event date or date range
 - time: Event time if available
-- description: Brief description if available
-- age_group: Target audience (e.g., "All Ages", "21+ Only")
-- cost: Admission cost or pricing details if mentioned
-- venue: Always "Franklin Park Conservatory"
-- address: Always "1777 E Broad St, Columbus, OH 43203"
+- description: Brief description
+- type: Event type (e.g., "Animal Show", "Special Event", "Festival", "Educational Program")
+- age_requirements: Any age restrictions if mentioned
+- cost: "Included with admission" or specific pricing if mentioned
+- venue: Always "Cincinnati Zoo & Botanical Garden"
+- address: Always "3400 Vine St, Cincinnati, OH 45220"
+- notes: Important info (reservations, seasonal, etc.)
 
 Return ONLY a valid JSON array of events. Each event should be a JSON object with the fields above.
 If a field is not available, use an empty string.
 
-Only include events that are clearly listed on the page. Do not make up events.
+Focus on:
+1. Special events and festivals (like Festival of Lights)
+2. Daily animal shows and encounters
+3. Special exhibits
+4. Educational programs
 
 Webpage content:
 {page_content[:8000]}
@@ -65,14 +71,16 @@ Webpage content:
 Return format:
 [
   {{
-    "title": "Event Name",
-    "date": "Jan 4",
-    "time": "",
-    "description": "Event description",
-    "age_group": "All Ages",
-    "cost": "Free with Columbus or Franklin County ID",
-    "venue": "Franklin Park Conservatory",
-    "address": "1777 E Broad St, Columbus, OH 43203"
+    "title": "Festival of Lights",
+    "date": "Nov 17 - Jan 5",
+    "time": "5:00 PM - 9:00 PM",
+    "description": "Holiday light display...",
+    "type": "Seasonal Festival",
+    "age_requirements": "",
+    "cost": "Included with admission",
+    "venue": "Cincinnati Zoo & Botanical Garden",
+    "address": "3400 Vine St, Cincinnati, OH 45220",
+    "notes": "Seasonal - winter months only"
   }}
 ]
 """
