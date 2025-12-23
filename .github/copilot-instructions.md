@@ -182,8 +182,9 @@ def get_new_venue_events():
 
 **Agent Configuration:**
 - Current model: `gpt-5.2` (configurable in `family_manager.py`)
-- Max iterations: 5
+- Max iterations: 15 (allows agent to check all 11 scrapers if needed)
 - Use ReAct pattern for tool-using agents
+- Each iteration = one reasoning cycle + one tool call
 
 **Architectural Pattern: Static Context vs. Dynamic Actions**
 

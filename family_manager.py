@@ -68,8 +68,8 @@ tools = [
     get_hocking_hills_info,
 ]
 
-max_iterations = 5
-recursion_limit = 2 * max_iterations + 1
+max_iterations = 15  # Increased from 5 to accommodate all 11 event scrapers
+recursion_limit = 2 * max_iterations + 1  # LangGraph requirement: 2 * max_iterations + 1
 agent = create_react_agent(
     model="openai:gpt-5.2",
     tools=tools,
