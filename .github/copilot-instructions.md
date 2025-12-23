@@ -131,10 +131,10 @@ def get_new_venue_events():
   ```
 - See `event_scrapers/events_tool_conservatory.py` for reference implementation
 
-**2. Traditional BeautifulSoup (Legacy scrapers only):**
-- Use for scrapers already implemented with BeautifulSoup
-- Consider migrating to AI-assisted approach when refactoring
-- Follow existing pattern in `event_scrapers/events_tool_zoo.py`
+**2. Traditional BeautifulSoup (DEPRECATED):**
+- All legacy scrapers have been migrated to AI-assisted approach
+- Do NOT use BeautifulSoup for new scrapers
+- If you encounter a BeautifulSoup scraper, consider migrating it
 
 **For All Event Scrapers (`event_scrapers/events_tool_*.py`):**
 - Always check HTTP status code before parsing
