@@ -30,6 +30,9 @@ from event_scrapers import (
     get_metroparks_events,
     get_zoo_events,
     get_lynd_fruit_farm_events,
+    get_conservatory_events,
+    get_olentangy_caverns_info,
+    get_wilds_events,
 )
 from email_client import gmail_send_message, gmail_create_draft
 from family_config import get_children_age_string, get_children_interests_string
@@ -40,7 +43,14 @@ from langchain_core.tools import tool
 # They are called directly in create_messages() to pre-fetch context
 # This is more efficient than having the agent decide whether to call them
 
-tools = [get_metroparks_events, get_zoo_events, get_lynd_fruit_farm_events]
+tools = [
+    get_metroparks_events,
+    get_zoo_events,
+    get_lynd_fruit_farm_events,
+    get_conservatory_events,
+    get_olentangy_caverns_info,
+    get_wilds_events,
+]
 
 max_iterations = 5
 recursion_limit = 2 * max_iterations + 1
@@ -85,9 +95,17 @@ WEATHER FORECAST:
 
 TASK:
 Based on the weather above, suggest 3 family-friendly weekend activities.
-Check for events at Columbus Metro Parks, Columbus Zoo, and Lynd Fruit Farm.
+
+AVAILABLE VENUES (check for events using your tools):
+- Columbus Metro Parks (outdoor, various locations)
+- Columbus Zoo and Aquarium (mostly outdoor, some indoor areas)
+- Lynd Fruit Farm (outdoor, seasonal activities)
+- Franklin Park Conservatory (INDOOR - great for bad weather!)
+- Olentangy Caverns (cave tours, 54°F year-round)
+- The Wilds (1.5 hour drive, safari tours - best for full-day trips)
+
 Ensure activities are appropriate for the children's ages, interests, and weather conditions.
-If weather is unsuitable for outdoor activities, prioritize indoor alternatives.
+If weather is unsuitable for outdoor activities, prioritize indoor alternatives like Franklin Park Conservatory.
 """
 
     return {

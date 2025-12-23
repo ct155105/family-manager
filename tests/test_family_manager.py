@@ -214,5 +214,7 @@ class TestToolsList:
         """Test that tools list contains ONLY event fetchers"""
         from family_manager import tools
 
-        # Should have exactly 3 tools (the event fetchers)
-        assert len(tools) == 3
+        # Should have exactly 6 tools (all event fetchers)
+        # Legacy: metroparks, zoo, lynd_fruit_farm
+        # New AI-assisted: conservatory, olentangy_caverns, wilds
+        assert len(tools) == 6
