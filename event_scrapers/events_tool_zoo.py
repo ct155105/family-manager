@@ -1,89 +1,117 @@
-from bs4 import BeautifulSoup
-import requests
-import json
+"""
+Columbus Zoo and Aquarium Events Scraper
+
+Uses AI-assisted web scraping to extract event information from Columbus Zoo.
+Note: Mostly outdoor zoo with some indoor exhibits (aquarium, reptile house).
+"""
+
+from langchain_community.document_loaders import WebBaseLoader
 from langchain_core.tools import tool
+from langchain.chat_models import init_chat_model
+import json
+import os
 
 
-@tool("get_columbus_zoo_events", description="Get a list of upcoming events from Columbus Zoo and Aquarium events website.")
+@tool("get_columbus_zoo_events", description="Get upcoming events from Columbus Zoo and Aquarium. Mostly outdoor zoo with some indoor exhibits, includes seasonal events and special programs.")
 def get_zoo_events() -> str:
     """
-    Scrapes the Columbus Zoo and Aquarium events page for a list of upcoming events.
-    Returns a JSON string with event details including title, date/time, description, venue, and
-    address.
+    Scrapes the Columbus Zoo and Aquarium events page using AI-assisted extraction.
+    Returns special events, seasonal programs, and animal encounters.
+
+    Returns:
+        str: JSON array of events or error message
     """
-    
     url = "https://columbuszoo.org/events"
     print(f"Fetching events from {url}...")
-    response = requests.get(url)
-    if response.status_code != 200:
-        return f"Failed to fetch events. Status code: {response.status_code}"
-    soup = BeautifulSoup(response.text, "html.parser")
-    
-    results = []
-    
-    ## PARSER CODE HERE ##
-    # The relevant event listings are under:
-    # <div class="views-element-container ... block-views-blockevents-block-2" ...>
-    # Inside: <div class="view-content"> and each event is <div class="item">
 
-    event_container = soup.find("div", class_="views-element-container", id="block-views-block-events-block-2")
-    if not event_container:
-        return results  # No events found
-    
-    view_content = event_container.find("div", class_="view-content")
-    if not view_content:
-        return results
+    try:
+        # Load webpage content
+        loader = WebBaseLoader(url)
+        docs = loader.load()
 
-    items = view_content.find_all("div", class_="item")
-    
-    # We'll use these as defaults since the events are for "Columbus Zoo and Aquarium"
-    default_venue = "Columbus Zoo and Aquarium"
-    default_address = "4850 Powell Rd, Powell, OH 43065"  # public address for the zoo
+        if not docs or len(docs) == 0:
+            return json.dumps({"error": "Failed to load webpage content"})
 
-    for item in items:
-        event = {}
-        
-        # 1. Title
-        a_tag = item.find("a", class_="wrap")
-        event['title'] = a_tag['title'].strip() if a_tag and a_tag.has_attr('title') else ''
+        page_content = docs[0].page_content
 
-        # 2. Date/Time / End Time
-        # <h4>JUL 31 - OCT 5</h4> or other variants
-        h4 = item.find("h4")
-        date_text = h4.get_text(" ", strip=True) if h4 else ""
-        # By default, assign everything to date_time, and split on '-' or '&'.
-        # Examples: "JUN 29 & 30", "JUL 31 - OCT 5", "JUN 30 - JUL 4", "AUG 17 - 18", "WEEKENDS Oct 10 - 26"
-        date_time = date_text.strip()
-        end_time = ''
-        import re
+        # Initialize LLM for extraction
+        llm = init_chat_model(
+            model="gpt-4o-mini",
+            model_provider="openai",
+            temperature=0
+        )
 
-        # Try to split out ranges for end_time
-        if '-' in date_time:
-            left, right = date_time.split('-', 1)
-            event['date_time'] = left.strip()
-            event['end_time'] = right.strip()
+        # Prompt for structured data extraction
+        extraction_prompt = f"""Extract all upcoming events from this Columbus Zoo and Aquarium events webpage.
+
+For each event, extract:
+- title: Event name
+- date: Event date or date range
+- time: Event time if available
+- description: Brief description of the event
+- type: Type of event (e.g., "Seasonal Event", "Animal Encounter", "Special Program", "Educational Event")
+- age_requirements: Any age restrictions mentioned
+- cost: Pricing information (note if included with admission or additional fee)
+- venue: Always "Columbus Zoo and Aquarium"
+- address: Always "4850 Powell Rd, Powell, OH 43065"
+- notes: Important details (weather-dependent, member benefits, etc.)
+
+Return ONLY a valid JSON array of events. Each event should be a JSON object with the fields above.
+If a field is not available, use an empty string.
+
+Focus on:
+1. Seasonal events (Wildlights, Boo at the Zoo, etc.)
+2. Animal encounters and experiences
+3. Educational programs
+4. Special exhibits
+
+Webpage content:
+{page_content[:8000]}
+
+Return format:
+[
+  {{
+    "title": "Wildlights",
+    "date": "November 15 - January 5",
+    "time": "5:00 PM - 9:00 PM",
+    "description": "Holiday lights festival throughout the zoo...",
+    "type": "Seasonal Event",
+    "age_requirements": "All ages",
+    "cost": "Included with admission",
+    "venue": "Columbus Zoo and Aquarium",
+    "address": "4850 Powell Rd, Powell, OH 43065",
+    "notes": "Weather permitting. Members get discount."
+  }}
+]
+"""
+
+        # Get structured response from LLM
+        response = llm.invoke(extraction_prompt)
+
+        # Extract content from response
+        if hasattr(response, 'content'):
+            result = response.content
         else:
-            event['date_time'] = date_time
-            event['end_time'] = ''
-        
-        # 3. Description (no dedicated field, but try to extract from img alt text or None)
-        # Sometimes the logo image alt has meaningful context
-        img_logo = item.find('span', class_='logo')
-        description = ''
-        if img_logo:
-            img = img_logo.find('img')
-            if img and img.has_attr('alt'):
-                description = img['alt'].strip()
-        event['description'] = description
+            result = str(response)
 
-        # 4. Venue (assume always Columbus Zoo and Aquarium unless info elsewhere)
-        event['venue'] = default_venue
+        # Clean up markdown code blocks if present
+        result = result.strip()
+        if result.startswith('```json'):
+            result = result[7:]
+        if result.startswith('```'):
+            result = result[3:]
+        if result.endswith('```'):
+            result = result[:-3]
+        result = result.strip()
 
-        # 5. Address (assume default)
-        event['address'] = default_address
+        # Validate it's valid JSON
+        try:
+            events = json.loads(result)
+            if not isinstance(events, list):
+                return json.dumps({"error": "Extracted data is not a list of events"})
+            return json.dumps(events, indent=2)
+        except json.JSONDecodeError as e:
+            return json.dumps({"error": f"Failed to parse extracted events as JSON: {str(e)}", "raw_response": result})
 
-        # Add to results
-        results.append(event)
-    ## END PARSER CODE ##
-    
-    return json.dumps(results, indent=2)
+    except Exception as e:
+        return json.dumps({"error": f"Failed to fetch or process events: {str(e)}"})

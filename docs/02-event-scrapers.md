@@ -8,14 +8,69 @@ Expand the family assistant's venue knowledge by adding event scrapers for addit
 
 ## Current Event Scrapers
 
-### Legacy Scrapers (BeautifulSoup-based)
-- ✅ Columbus Metro Parks (`events_tool_metroparks.py`)
-- ✅ Columbus Zoo (`events_tool_zoo.py`)
-- ✅ Lynd Fruit Farm (`events_tool_lynd_fruit_farm.py`)
+### Columbus Area Scrapers (Migrated to AI-Assisted)
 
-### AI-Assisted Scrapers - Priority 1 (Columbus Area)
+#### ✅ 1. Columbus Metro Parks
+**File:** `event_scrapers/events_tool_metroparks.py`
+**URL:** https://www.metroparks.net/events-new/
+**Status:** ✅ COMPLETED (Migrated to AI-assisted)
+**Migrated:** 2025-12-22
 
-#### ✅ 3. Franklin Park Conservatory
+**What It Scrapes:**
+- Nature programs and guided hikes
+- Educational workshops
+- Family activities and events
+- Special events across multiple park locations
+
+**Notes:**
+- Multiple outdoor park locations around Columbus
+- Most programs are free
+- Registration often required
+- Weather-dependent activities
+
+---
+
+#### ✅ 2. Columbus Zoo and Aquarium
+**File:** `event_scrapers/events_tool_zoo.py`
+**URL:** https://columbuszoo.org/events
+**Status:** ✅ COMPLETED (Migrated to AI-assisted)
+**Migrated:** 2025-12-22
+
+**What It Scrapes:**
+- Seasonal events (Wildlights, Boo at the Zoo)
+- Animal encounters and experiences
+- Educational programs
+- Special exhibits
+
+**Notes:**
+- Mostly outdoor zoo with some indoor exhibits
+- Seasonal events are major attractions
+- Member benefits often available
+- Weather-dependent for outdoor portions
+
+---
+
+#### ✅ 3. Lynd Fruit Farm
+**File:** `event_scrapers/events_tool_lynd_fruit_farm.py`
+**URL:** https://lyndfruitfarm.com/events-and-activities
+**Status:** ✅ COMPLETED (Migrated to AI-assisted)
+**Migrated:** 2025-12-22
+
+**What It Scrapes:**
+- Seasonal activities (apple picking, pumpkin patch)
+- Special events and festivals
+- Farm experiences (hayrides, corn maze)
+- Educational programs
+
+**Notes:**
+- Outdoor farm location
+- Highly seasonal (best in fall)
+- Weather-dependent
+- Pay-by-activity or pay-by-pound pricing
+
+---
+
+#### ✅ 4. Franklin Park Conservatory
 **File:** `event_scrapers/events_tool_conservatory.py`
 **URL:** https://www.fpconservatory.org/events/
 **Status:** ✅ COMPLETED (AI-assisted)
@@ -35,7 +90,7 @@ Expand the family assistant's venue knowledge by adding event scrapers for addit
 
 ---
 
-#### ✅ 4. Olentangy Caverns
+#### ✅ 5. Olentangy Caverns
 **File:** `event_scrapers/events_tool_olentangy_caverns.py`
 **URL:** https://olentangycaverns.com/
 **Status:** ✅ COMPLETED (AI-assisted)
@@ -54,7 +109,7 @@ Expand the family assistant's venue knowledge by adding event scrapers for addit
 
 ---
 
-#### ✅ 5. The Wilds
+#### ✅ 6. The Wilds
 **File:** `event_scrapers/events_tool_wilds.py`
 **URL:** https://thewilds.org/events/
 **Status:** ✅ COMPLETED (AI-assisted)
@@ -75,7 +130,7 @@ Expand the family assistant's venue knowledge by adding event scrapers for addit
 
 ### AI-Assisted Scrapers - Priority 2 (Regional: 1-2 hour drive)
 
-#### ✅ 6. Cincinnati Zoo
+#### ✅ 7. Cincinnati Zoo
 **File:** `event_scrapers/events_tool_cincinnati_zoo.py`
 **URL:** https://cincinnatizoo.org/events/
 **Status:** ✅ COMPLETED (AI-assisted)
@@ -91,7 +146,7 @@ Expand the family assistant's venue knowledge by adding event scrapers for addit
 
 ---
 
-#### ✅ 7. Newport Aquarium
+#### ✅ 8. Newport Aquarium
 **File:** `event_scrapers/events_tool_newport_aquarium.py`
 **URL:** https://www.newportaquarium.com/events
 **Status:** ✅ COMPLETED (AI-assisted)
@@ -111,7 +166,7 @@ Expand the family assistant's venue knowledge by adding event scrapers for addit
 
 ---
 
-#### ✅ 8. National Museum of the US Air Force
+#### ✅ 9. National Museum of the US Air Force
 **File:** `event_scrapers/events_tool_airforce_museum.py`
 **URL:** https://www.nationalmuseum.af.mil/Visit/Events/
 **Status:** ✅ COMPLETED (AI-assisted)
@@ -133,7 +188,7 @@ Expand the family assistant's venue knowledge by adding event scrapers for addit
 
 ---
 
-#### ✅ 9. Kings Island
+#### ✅ 10. Kings Island
 **File:** `event_scrapers/events_tool_kings_island.py`
 **URL:** https://www.visitkingsisland.com/events
 **Status:** ✅ COMPLETED (AI-assisted)
@@ -155,7 +210,7 @@ Expand the family assistant's venue knowledge by adding event scrapers for addit
 
 ---
 
-#### ✅ 10. Hocking Hills State Park
+#### ✅ 11. Hocking Hills State Park
 **File:** `event_scrapers/events_tool_hocking_hills.py`
 **URL:** https://www.hockinghills.com/
 **Status:** ✅ COMPLETED (AI-assisted)

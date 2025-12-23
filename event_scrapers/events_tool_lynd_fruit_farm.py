@@ -1,95 +1,117 @@
-import requests
-from bs4 import BeautifulSoup
-import re
-from datetime import datetime
-from langchain_core.tools import tool
+"""
+Lynd Fruit Farm Events Scraper
 
-@tool("get_lynd_fruit_farm_events", description="Get a list of upcoming events from Lynd Fruit Farm events website.")
-def get_lynd_fruit_farm_events():
+Uses AI-assisted web scraping to extract event information from Lynd Fruit Farm.
+Note: Outdoor farm with seasonal activities (apple picking, pumpkin patch, etc.).
+"""
+
+from langchain_community.document_loaders import WebBaseLoader
+from langchain_core.tools import tool
+from langchain.chat_models import init_chat_model
+import json
+import os
+
+
+@tool("get_lynd_fruit_farm_events", description="Get upcoming events from Lynd Fruit Farm. Outdoor farm with seasonal activities like apple picking, pumpkin patch, hayrides, and family events.")
+def get_lynd_fruit_farm_events() -> str:
+    """
+    Scrapes the Lynd Fruit Farm events page using AI-assisted extraction.
+    Returns seasonal activities and special events at the farm.
+
+    Returns:
+        str: JSON array of events or error message
+    """
+    url = "https://lyndfruitfarm.com/events-and-activities"
+    print(f"Fetching events from {url}...")
+
     try:
-        url = "https://lyndfruitfarm.com/events-and-activities"
-        print(f"Fetching events from {url}...")
-        response = requests.get(url)
-        response.raise_for_status()
-        soup = BeautifulSoup(response.content, 'html.parser')
-        
-        ## PARSER CODE HERE ##
-        events = []
-        
-        # Find all event list items
-        event_items = soup.find_all('div', class_='ue-event-list-item')
-        
-        for item in event_items:
-            event_data = {
-                'date_time': '',
-                'end_time': '',
-                'title': '',
-                'description': '',
-                'venue': '',
-                'address': ''
-            }
-            
-            # Extract title
-            title_elem = item.find('div', class_='ue-event-list-item-details-title')
-            if title_elem:
-                event_data['title'] = title_elem.get_text(strip=True)
-            
-            # Extract venue/location
-            location_elem = item.find('div', class_='ue-event-list-item-details-attributes-location')
-            if location_elem:
-                location_label = location_elem.find('div', class_='ue-event-list-item-details-attributes-label')
-                if location_label:
-                    event_data['venue'] = location_label.get_text(strip=True)
-            
-            # Extract date
-            date_elem = item.find('div', class_='ue-event-list-item-details-attributes-date')
-            date_str = ''
-            if date_elem:
-                date_label = date_elem.find('div', class_='ue-event-list-item-details-attributes-label--date')
-                if date_label:
-                    date_str = date_label.get_text(strip=True)
-            
-            # Extract time information
-            time_elems = item.find_all('div', class_='ue-event-list-item-details-attributes-time')
-            start_time = ''
-            end_time = ''
-            
-            if time_elems:
-                for i, time_elem in enumerate(time_elems):
-                    time_label = time_elem.find('div', class_='ue-event-list-item-details-attributes-label')
-                    if time_label:
-                        time_text = time_label.get_text(strip=True)
-                        if i == 0:
-                            start_time = time_text
-                        elif i == 1:
-                            end_time = time_text
-            
-            # Combine date and start time
-            if date_str and start_time:
-                event_data['date_time'] = f"{date_str} {start_time}"
-            elif date_str:
-                event_data['date_time'] = date_str
-            elif start_time:
-                event_data['date_time'] = start_time
-            
-            # Set end time
-            event_data['end_time'] = end_time
-            
-            # Extract description
-            desc_elem = item.find('div', class_='ue-event-list-item-details-text')
-            if desc_elem:
-                # Get all text content, preserving structure
-                desc_text = desc_elem.get_text(separator=' ', strip=True)
-                # Clean up extra whitespace
-                desc_text = re.sub(r'\s+', ' ', desc_text)
-                event_data['description'] = desc_text
-            
-            # Address is typically not provided in this format, leaving empty
-            event_data['address'] = ''
-            
-            events.append(event_data)
-        
-        return events
-        
+        # Load webpage content
+        loader = WebBaseLoader(url)
+        docs = loader.load()
+
+        if not docs or len(docs) == 0:
+            return json.dumps({"error": "Failed to load webpage content"})
+
+        page_content = docs[0].page_content
+
+        # Initialize LLM for extraction
+        llm = init_chat_model(
+            model="gpt-4o-mini",
+            model_provider="openai",
+            temperature=0
+        )
+
+        # Prompt for structured data extraction
+        extraction_prompt = f"""Extract all upcoming events and seasonal activities from this Lynd Fruit Farm webpage.
+
+For each event or activity, extract:
+- title: Event or activity name
+- date: Event date or date range (or "Seasonal" if ongoing)
+- time: Event time or operating hours
+- description: Brief description of the activity
+- type: Type of activity (e.g., "Seasonal Activity", "Special Event", "Farm Experience", "Family Activity")
+- age_requirements: Any age restrictions mentioned
+- cost: Pricing information if available
+- venue: Always "Lynd Fruit Farm"
+- address: Always "9394 Morse Rd, Pataskala, OH 43062"
+- seasonal_notes: When this activity is available (e.g., "Fall only", "September-October")
+
+Return ONLY a valid JSON array of events. Each event should be a JSON object with the fields above.
+If a field is not available, use an empty string.
+
+Focus on:
+1. Seasonal activities (apple picking, pumpkin patch, etc.)
+2. Special events (festivals, themed weekends)
+3. Farm experiences (hayrides, corn maze, etc.)
+4. Educational programs
+
+Webpage content:
+{page_content[:8000]}
+
+Return format:
+[
+  {{
+    "title": "Apple Picking",
+    "date": "Seasonal",
+    "time": "9:00 AM - 6:00 PM",
+    "description": "Pick your own apples from our orchards...",
+    "type": "Seasonal Activity",
+    "age_requirements": "All ages",
+    "cost": "Pay by the pound",
+    "venue": "Lynd Fruit Farm",
+    "address": "9394 Morse Rd, Pataskala, OH 43062",
+    "seasonal_notes": "September - October, weather permitting"
+  }}
+]
+"""
+
+        # Get structured response from LLM
+        response = llm.invoke(extraction_prompt)
+
+        # Extract content from response
+        if hasattr(response, 'content'):
+            result = response.content
+        else:
+            result = str(response)
+
+        # Clean up markdown code blocks if present
+        result = result.strip()
+        if result.startswith('```json'):
+            result = result[7:]
+        if result.startswith('```'):
+            result = result[3:]
+        if result.endswith('```'):
+            result = result[:-3]
+        result = result.strip()
+
+        # Validate it's valid JSON
+        try:
+            events = json.loads(result)
+            if not isinstance(events, list):
+                return json.dumps({"error": "Extracted data is not a list of events"})
+            return json.dumps(events, indent=2)
+        except json.JSONDecodeError as e:
+            return json.dumps({"error": f"Failed to parse extracted events as JSON: {str(e)}", "raw_response": result})
+
     except Exception as e:
-        return f"Error: {str(e)}"
+        return json.dumps({"error": f"Failed to fetch or process events: {str(e)}"})
