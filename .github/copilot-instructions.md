@@ -181,10 +181,22 @@ def get_new_venue_events():
 - Update in `family_manager.py` when adding new capabilities
 
 **Agent Configuration:**
-- Current model: `gpt-5.2` (configurable in `family_manager.py`)
+- Main agent model: `gpt-5.2` (for activity recommendations with reasoning + tools)
+- HTML formatter model: `gpt-5.2` (for high-quality formatting without agent overhead)
 - Max iterations: 15 (allows agent to check all 11 scrapers if needed)
 - Use ReAct pattern for tool-using agents
 - Each iteration = one reasoning cycle + one tool call
+
+**Model Selection Pattern:**
+Choose the right approach for each task:
+- **Complex reasoning tasks** (deciding which venues to check, interpreting weather, etc.)
+  - Use `gpt-5.2` with ReAct agent and tools
+  - Example: `get_ideas_for_today()` in family_manager.py
+- **Simple text transformation** (formatting, HTML generation, etc.)
+  - Use `gpt-5.2` with direct LLM call (no agent, no tools)
+  - Example: `generate_newsletter_html()` in family_manager.py
+  - Benefits: Faster response, cleaner architecture (no unnecessary tool context), same quality
+  - Use temperature=0.7 for creative formatting tasks
 
 **Architectural Pattern: Static Context vs. Dynamic Actions**
 
