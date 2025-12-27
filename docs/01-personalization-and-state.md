@@ -5,8 +5,8 @@ Make the family assistant more personalized by tracking children's information d
 
 ## Progress Summary
 - ✅ **Task #1: Dynamic Children Age Calculation** - COMPLETED (2025-12-21)
-- ⏳ **Task #2: Children Interests Data Store** - Not Started
-- ⏳ **Task #3: Recommendation History Database** - Not Started
+- ✅ **Task #2: Children Interests Data Store** - COMPLETED (2025-12-21)
+- ✅ **Task #3: Recommendation History Database** - COMPLETED (2025-12-26)
 
 ---
 
@@ -53,101 +53,109 @@ Make the family assistant more personalized by tracking children's information d
 ---
 
 ### 2. Children Interests Data Store
-**Status:** Not Started  
-**Priority:** Medium  
+**Status:** ✅ COMPLETED (2025-12-21)
+**Priority:** Medium
 **Dependencies:** Task #1
+**Files Modified:** `family_config.py`, `family_manager.py`
 
-**Current State:**
-- No tracking of individual children's interests
-- AI makes generic recommendations
+**What Was Implemented:**
+1. ✅ Added interests array to each child in `CHILDREN` config:
+   - Grayson: art, drawing, animals, reptiles, nature, snakes, science, LEGO, swimming, performing arts
+   - Madeline: art, dancing, animals
+   - Chase: trucks, trains, animals, playgrounds, music
 
-**Implementation Approach:**
+2. ✅ Created `get_children_interests_string()` function to format interests for prompts
 
-**Option A: Simple Config File (Quick Start)**
-```python
-# family_config.py
-CHILDREN = [
-    {
-        "name": "Child1",
-        "birthdate": "2019-XX-XX",
-        "interests": ["dinosaurs", "science", "outdoor play", "animals"]
-    },
-    {
-        "name": "Child2", 
-        "birthdate": "2019-XX-XX",
-        "interests": ["art", "crafts", "reading", "dancing"]
-    },
-    {
-        "name": "Child3",
-        "birthdate": "2022-XX-XX", 
-        "interests": ["playgrounds", "animals", "music", "water play"]
-    }
-]
-```
+3. ✅ Updated system prompt in `family_manager.py` to include personalized interests
 
-**Option B: Firestore Storage (Future-Proof)**
-```
-Collection: children
-  Document: child_1
-    - name: string
-    - birthdate: timestamp
-    - interests: array
-    - favorite_places: array
-    - last_updated: timestamp
-```
-
-**Integration with AI:**
-1. Create helper function to format interests for system prompt:
-   ```python
-   def get_children_info_for_prompt():
-       info = []
-       for child in CHILDREN:
-           ages = calculate_age(child['birthdate'])
-           interests = ", ".join(child['interests'])
-           info.append(f"Child (age {age}): interests include {interests}")
-       return "; ".join(info)
-   ```
-
-2. Update system prompt to include personalized interests
-
-**Benefits:**
-- More targeted recommendations
-- Can evolve as children grow
-- Helps avoid suggesting age-inappropriate activities
+**Benefits Delivered:**
+- ✅ AI makes personalized recommendations based on each child's specific interests
+- ✅ Age-appropriate activity suggestions aligned with preferences
+- ✅ Easy to update as children's interests evolve
 
 ---
 
 ### 3. Recommendation History Database
-**Status:** Not Started  
-**Priority:** Medium  
-**Files:** New `database.py`, modify `family_manager.py`
+**Status:** ✅ COMPLETED (2025-12-26)
+**Priority:** Medium
+**Files:** New `recommendation_db.py`, modified `family_manager.py`, new `test_firestore_connection.py`
 
-**Purpose:**
-Prevent recommending the same venues/events repeatedly by tracking what's been suggested.
+**What Was Implemented:**
 
-**Database Schema (Firestore):**
-```
-Collection: recommendations
-  Document: {date}_{recommendation_id}
-    - date: timestamp
-    - venues: array[string]
-    - events: array[string]
-    - weather_conditions: string
-    - selected_activities: array[object]
-      - venue: string
-      - event: string
-      - reason: string
-```
+1. ✅ **Created `recommendation_db.py` with State Abstraction Layer:**
+   - `RecommendationDatabase` class (Repository Pattern)
+   - `save_recommendation()` - Persists recommendations to Firestore
+   - `get_recent_recommendations()` - Time-windowed queries (last N days)
+   - `get_recently_visited_venues()` - Materialized view pattern
+   - Singleton pattern for database instance
+   - Graceful error handling (degradation if DB unavailable)
 
-**Implementation:**
-1. After generating recommendations, save to Firestore
-2. Before generating new recommendations, query recent history (last 30 days)
-3. Pass recent venues to system prompt: "Recently visited: X, Y, Z. Suggest different places."
+2. ✅ **Firestore Schema Design:**
+   ```python
+   Collection: recommendations
+     Document: {auto_id}
+       - timestamp: datetime       # Indexed for time-range queries
+       - date: string             # Human-readable (YYYY-MM-DD)
+       - venues_mentioned: [str]  # Extracted venue names
+       - events_mentioned: [str]  # Specific events (optional)
+       - weather_conditions: str  # Context for analysis
+       - raw_suggestions: str     # Full recommendation text
+       - created_by: str          # "family_manager_v1"
+       - created_at: timestamp    # Server timestamp
+   ```
 
-**Benefits:**
-- Avoid repetitive suggestions
-- Track what works well
-- Historical data for future improvements
+3. ✅ **Integrated with Agent Pipeline (State Hydration Pattern):**
+   - **Pre-fetch:** Load recent venues in `create_messages()` before agent runs
+   - **System Prompt:** Add "RECENT ACTIVITY HISTORY" section to avoid repetition
+   - **Post-process:** Extract venues with LLM after agent generates recommendations
+   - **Persist:** Save to Firestore via new `save_recommendation_to_history` node
+
+4. ✅ **LangGraph Pipeline Updated:**
+   ```
+   START
+     → create_messages (load history, build prompt)
+     → get_ideas_for_today (agent generates recommendations)
+     → save_recommendation_to_history (extract & persist)
+     → generate_newsletter_html (format)
+     → create_gmail_draft_from_html (email)
+   ```
+
+5. ✅ **Created Setup Documentation:**
+   - `docs/FIRESTORE_SETUP.md` - Complete setup guide
+   - Authentication patterns explained
+   - Security best practices
+   - Troubleshooting guide
+
+6. ✅ **Test Infrastructure:**
+   - `test_firestore_connection.py` - Verify Firestore setup
+   - Tests connection, read, and write operations
+
+**Key Patterns Demonstrated:**
+- 🏛️ **Repository Pattern:** Database logic separated from agent logic
+- 🚰 **State Hydration:** Load state before agent runs (not via tool)
+- 🔄 **Graceful Degradation:** Agent continues if database unavailable
+- 📦 **Singleton Pattern:** One database connection per lifecycle
+- 🎯 **Materialized View:** Return only needed data (venue names, not full docs)
+- 🧩 **Side-Effect Node:** LangGraph node that persists without modifying state
+- 🤖 **LLM Post-Processing:** Extract structured data from free-form text
+
+**Benefits Delivered:**
+- ✅ Prevents repetitive venue suggestions
+- ✅ Tracks recommendation history for future analysis
+- ✅ Cloud-based state (accessible across devices)
+- ✅ Agent remains stateless (state externalized to Firestore)
+- ✅ Can swap storage backend without changing agent code
+
+**Setup Required:**
+1. Create Firebase project (or use existing GCP project)
+2. Enable Firestore database
+3. Install gcloud CLI: `brew install google-cloud-sdk`
+4. Authenticate: `gcloud auth application-default login`
+5. Set `FIRESTORE_PROJECT_ID` in `.env`
+6. Run `pip install google-cloud-firestore>=2.14.0`
+7. Test with `python test_firestore_connection.py`
+
+**Authentication:** Uses Application Default Credentials (ADC) - no JSON key files needed for local development.
 
 ---
 
@@ -176,8 +184,11 @@ OPENWEATHERMAP_API_KEY=...
 
 ---
 
-## Next Steps
-1. Start with simple config file approach (Task #1 & #2 Option A)
-2. Test with dynamic ages in recommendations
-3. Plan Firestore migration for Task #3
-4. Implement recommendation tracking
+## Completed!
+
+All three tasks in this priority are complete:
+- ✅ Task #1: Dynamic age calculation
+- ✅ Task #2: Children interests
+- ✅ Task #3: Recommendation history with Firestore
+
+**Next Priority:** See [02-event-scrapers.md](02-event-scrapers.md) for Priority 3 tasks (COSI, Cedar Point, etc.)
