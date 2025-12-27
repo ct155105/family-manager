@@ -44,8 +44,11 @@ from event_scrapers import (
 )
 from email_client import gmail_send_message, gmail_create_draft
 from family_config import get_children_age_string, get_children_interests_string
+from recommendation_db import get_recently_visited_venues, save_recommendation
 from datetime import datetime, timedelta
 from langchain_core.tools import tool
+import json
+import re
 
 # Note: get_today_date and get_weekend_forecast are no longer tools
 # They are called directly in create_messages() to pre-fetch context
@@ -107,6 +110,20 @@ def create_messages(state: State) -> list:
     weather_forecast = get_weekend_forecast.invoke({})
     today = datetime.now().strftime('%Y-%m-%d')
 
+    # Pre-fetch recommendation history (State Hydration Pattern)
+    # Pattern: Load state before agent runs, not via tool
+    # Why: We ALWAYS need this (100% of runs), keeps agent focused
+    try:
+        recently_visited = get_recently_visited_venues(days=30)
+        if recently_visited:
+            recent_venues_text = f"\n\nRECENT ACTIVITY HISTORY (last 30 days):\nYou recently suggested these venues: {', '.join(recently_visited)}\nPlease suggest DIFFERENT venues this time to keep activities fresh and exciting.\n"
+        else:
+            recent_venues_text = ""
+    except Exception as e:
+        # Graceful degradation: If database unavailable, continue without history
+        print(f"⚠️  Could not load recommendation history: {e}")
+        recent_venues_text = ""
+
     SYSTEM_PROMPT = f"""You are a family weekend planning assistant for Columbus, OH.
 
 CONTEXT:
@@ -115,7 +132,7 @@ CONTEXT:
 {interests_string}
 
 WEATHER FORECAST:
-{weather_forecast}
+{weather_forecast}{recent_venues_text}
 
 TASK:
 Based on the weather above, suggest 3 family-friendly weekend activities.
@@ -156,6 +173,76 @@ def get_ideas_for_today(state: State) -> str:
     """
     msg = agent.invoke({"messages":state["messages"], recursion_limit: recursion_limit})
     return {"raw_message": msg["messages"][-1].content}
+
+
+def save_recommendation_to_history(state: State) -> dict:
+    """
+    Extracts venues from recommendations and saves to Firestore.
+
+    Pattern: Post-Processing Agent Output
+    - Agent generates free-form text
+    - We extract structured data with a quick LLM call
+    - Save structured data to database
+
+    Teaching Note: Why not use structured output in the main agent?
+    - Separation of concerns: Agent focuses on recommendations, this node handles persistence
+    - Easier to test/debug separately
+    - Can be disabled without changing agent
+    - Alternative: Use function calling for structured output (better for production)
+
+    Returns: Empty dict (pass-through node, doesn't modify state)
+    """
+    raw_message = state.get("raw_message", "")
+
+    if not raw_message:
+        print("⚠️  No recommendations to save")
+        return {}
+
+    # Pattern: Extract structured data from unstructured text using LLM
+    # This is a "cheap" LLM call (small prompt, simple task)
+    try:
+        # Use a lightweight model for extraction (fast, cheap)
+        extractor = init_chat_model(model="gpt-4o-mini", temperature=0)
+
+        extraction_prompt = f"""Extract venue names from these family activity recommendations.
+
+Return ONLY a JSON array of venue names mentioned, nothing else.
+Example: ["Columbus Zoo", "Franklin Park Conservatory"]
+
+Recommendations:
+{raw_message}
+
+JSON array of venues:"""
+
+        response = extractor.invoke([{"role": "user", "content": extraction_prompt}])
+        venues_text = response.content.strip()
+
+        # Clean up markdown code blocks if present
+        if venues_text.startswith('```'):
+            venues_text = re.sub(r'```json\s*|\s*```', '', venues_text).strip()
+
+        venues_mentioned = json.loads(venues_text)
+
+        # Get weather for context
+        weather_forecast = get_weekend_forecast.invoke({})
+
+        # Save to Firestore
+        doc_id = save_recommendation(
+            raw_suggestions=raw_message,
+            venues_mentioned=venues_mentioned,
+            weather_conditions=weather_forecast[:200]  # Truncate for storage
+        )
+
+        print(f"💾 Saved recommendation history: {len(venues_mentioned)} venues")
+
+    except Exception as e:
+        # Graceful degradation: Don't fail the whole pipeline if save fails
+        print(f"⚠️  Could not save recommendation history: {e}")
+        print("    (Continuing anyway - recommendations still generated)")
+
+    # Return empty dict - this is a pass-through node
+    # State flows through unchanged
+    return {}
 
 def generate_newsletter_html(state: State) -> dict:
     """
@@ -203,12 +290,17 @@ def create_gmail_draft_from_html(state: State) -> dict:
 # the node is used.
 graph_builder.add_node("create_messages", create_messages)
 graph_builder.add_node("get_ideas_for_today", get_ideas_for_today)
+graph_builder.add_node("save_recommendation_to_history", save_recommendation_to_history)
 graph_builder.add_node("generate_newsletter_html", generate_newsletter_html)
 graph_builder.add_node("create_gmail_draft_from_html", create_gmail_draft_from_html)
 
+# Graph flow (Teaching: Linear pipeline with side-effect node)
+# START → create_messages → get_ideas → save_history → generate_html → create_draft
+# The save_history node is a "side-effect node" - doesn't modify state, just persists it
 graph_builder.add_edge(START, "create_messages")
 graph_builder.add_edge("create_messages", "get_ideas_for_today")
-graph_builder.add_edge("get_ideas_for_today", "generate_newsletter_html")
+graph_builder.add_edge("get_ideas_for_today", "save_recommendation_to_history")
+graph_builder.add_edge("save_recommendation_to_history", "generate_newsletter_html")
 graph_builder.add_edge("generate_newsletter_html", "create_gmail_draft_from_html")
 
 graph = graph_builder.compile()
