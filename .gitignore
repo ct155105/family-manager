@@ -1,5 +1,8 @@
 token.json
 credentials.json
+credentials/
+firebase-credentials.json
+*-firebase-adminsdk-*.json
 .venv
 venv
 dev.ipynb

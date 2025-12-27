@@ -1,6 +1,7 @@
-langgraph 
+langgraph
 langsmith
 langchain[openai]
+python-dotenv
 langchain_community
 pyowm
 setuptools
@@ -8,7 +9,8 @@ pytz
 beautifulsoup4
 google-auth
 google-api-python-client
-google-auth-httplib2 
+google-auth-httplib2
 google-auth-oauthlib
 langchain-anthropic
 pytest
+google-cloud-firestore>=2.14.0

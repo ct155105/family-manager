@@ -1,22 +1,29 @@
 # 🧭 Weekend Planning Assistant (AI Agentic App)
 
-This project is a **Generative AI-based assistant** that helps families decide what to do on the weekend. It uses a **LangChain agentic workflow**, enhanced by real-time weather data, family preferences, and local event information.
+This project is a **Generative AI-based assistant** that helps families decide what to do on the weekend. It uses a **LangGraph agentic workflow** with OpenAI GPT-5.2, enhanced by real-time weather data, family preferences, and local event information.
 
 ---
 
 ## ✨ Features
 
-- 🧠 Conversational planning via LLM (e.g., GPT-4)
+- 🧠 AI-powered recommendations via LLM (GPT-5.2)
 - 🌦 Weather-aware activity suggestions
-- 🗓 Calendar- and availability-aware recommendations
-- 📍 Event lookups from real-world APIs
-  - [x] Event lookup for Columbus Metro Parks
-  - [x] TODO: Event lookup for Columbus Zoo
-  - [ ] TODO: Event lookup for The Wilds
-  - [ ] TODO: Event lookup for COSI
-  - [ ] TODO: Event lookup for Franklin County Conservatory
-- 👨‍👩‍👧 Personalized based on family preferences and feedback
-- ⚙️ Modular agent/tool design using LangChain
+- 👨‍👩‍👧 Personalized based on dynamic family config (ages, interests)
+- 🔄 Recommendation history to avoid repetitive suggestions (Firestore)
+- 📍 Event lookups from real-world APIs:
+  - [x] Columbus Metro Parks
+  - [x] Columbus Zoo
+  - [x] Franklin Park Conservatory
+  - [x] Olentangy Caverns
+  - [x] Cincinnati Zoo
+  - [x] Newport Aquarium
+  - [x] Air Force Museum
+  - [x] Hocking Hills
+  - [x] Kings Island
+  - [x] The Wilds
+  - [ ] COSI (planned)
+  - [ ] Cedar Point (planned)
+- ⚙️ Modular agent/tool design using LangGraph
 
 ---
 
@@ -24,33 +31,32 @@ This project is a **Generative AI-based assistant** that helps families decide w
 
 ```mermaid
 graph TD
-  subgraph UI Layer
-    A[User: What should we do this weekend?]
+  subgraph LangGraph Pipeline
+    A[create_messages] --> B[get_ideas_for_today]
+    B --> C[save_recommendation_to_history]
+    C --> D[generate_newsletter_html]
+    D --> E[create_gmail_draft]
   end
 
-  subgraph Agentic Core
-    LLM[LLM GPT-4 via ChatOpenAI]
-    LLM --> M[Conversation Memory]
-    LLM --> T1[Tool: WeatherForecast]
-    LLM --> T2[Tool: UserPreferences]
-    LLM --> T3[Tool: LocalEvents]
+  subgraph Tools
+    B --> T1[Weather Forecast]
+    B --> T2[Event Scrapers x10]
   end
 
-  subgraph Tool Implementations
-    T1 --> W[Weather API e.g., OpenWeatherKit]
-    T2 --> P[Vector DB / Profile Store]
-    T3 --> E[Event APIs Eventbrite, Google Places]
+  subgraph State Management
+    F[(Firestore)] -->|Load recent venues| A
+    C -->|Save recommendation| F
   end
 
-  A -->|Prompt| LLM
-  LLM -->|Tool Calls| T1
-  LLM --> T2
-  LLM --> T3
-  T1 -->|Weather Data| LLM
-  T2 -->|User Preferences| LLM
-  T3 -->|Event Options| LLM
-  LLM -->|Final Recommendation| A
+  subgraph Config
+    G[family_config.py] -->|Ages & Interests| A
+  end
 ```
+
+**Key Patterns:**
+- **State Hydration**: Load recommendation history before agent runs
+- **Side-Effect Node**: Persist to Firestore without modifying graph state
+- **Repository Pattern**: Database abstraction in `recommendation_db.py`
 
 ---
 
@@ -66,30 +72,53 @@ The project includes an **HTML Parser Agent** (`html_parser_agent.py`) that acce
 
 ## 🚀 Running the Family Newsletter
 
-To generate and send the family weekend planning newsletter:
+### Prerequisites
 
-1. **Ensure you have Google credentials set up:**
-   - You need `credentials.json` (OAuth client credentials from Google Cloud Console)
-   - On first run, you'll be prompted to authenticate via browser
-   - A `token.json` file will be created to store your access token
+1. **Google Gmail credentials:**
+   - `credentials.json` (OAuth client credentials from Google Cloud Console)
+   - `token.json` (created on first run via browser auth)
 
-2. **Activate the virtual environment:**
+2. **Firestore (for recommendation history):**
    ```bash
-   source .venv/bin/activate
+   # Install gcloud CLI
+   brew install google-cloud-sdk
+
+   # Authenticate
+   gcloud auth application-default login
    ```
 
-3. **Run the main script:**
+3. **Environment variables** (in `.env`):
    ```bash
-   python family_manager.py
+   OPENAI_API_KEY=sk-...
+   FIRESTORE_PROJECT_ID=your-project-id
+   OPENWEATHERMAP_API_KEY=...
    ```
 
-3. **What happens:**
-   - The agent checks today's weather forecast
-   - It searches for events at Columbus Metro Parks, Columbus Zoo, and Lynd Fruit Farm
-   - AI generates activity recommendations suitable for the weather and family (kids ages 3, 5, 7)
-   - The recommendations are formatted into a beautiful HTML newsletter
-   - A Gmail draft is automatically created and sent to the configured recipients (christeuschler@gmail.com, lpisciotta@gmail.com)
+### Running
 
-4. **If you need to re-authenticate:**
-   - Delete `token.json` to force a new authentication flow
-   - Run the script again and complete the browser-based OAuth flow
+```bash
+# Activate virtual environment
+source venv/bin/activate
+
+# Run the agent
+python family_manager.py
+```
+
+### What Happens
+
+1. **State Hydration**: Loads recent venues from Firestore to avoid repetitive suggestions
+2. **Weather Check**: Fetches weekend forecast for Columbus, OH
+3. **Event Scraping**: Queries 10+ venue scrapers for current events
+4. **AI Recommendations**: GPT-5.2 generates personalized suggestions based on:
+   - Children's ages (dynamically calculated from `family_config.py`)
+   - Children's interests (art, animals, science, etc.)
+   - Recent activity history (what to avoid)
+   - Current weather conditions
+5. **Persistence**: Saves recommendation to Firestore for future reference
+6. **Email**: Creates Gmail draft with formatted HTML newsletter
+
+### Troubleshooting
+
+- **Gmail re-auth**: Delete `token.json` and run again
+- **Firestore auth**: Run `gcloud auth application-default login`
+- **Full setup guide**: See `docs/FIRESTORE_SETUP.md`

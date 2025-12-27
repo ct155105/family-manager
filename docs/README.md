@@ -5,19 +5,24 @@ This directory contains comprehensive documentation for the Family Manager proje
 ## Documentation Index
 
 ### 01. Personalization and State Management
-**File:** `01-personalization-and-state.md`
+**File:** `01-personalization-and-state.md` | **Status:** ✅ COMPLETED
 
 **Topics Covered:**
 - Dynamic children age calculation
 - Children interests data store
-- Recommendation history database
+- Recommendation history database (Firestore)
 - Configuration management approach
-- Firestore schema design
+
+**Related Files:**
+- `FIRESTORE_SETUP.md` - Setup guide for Firestore with ADC
+- `AGENT_STATE_PATTERNS.md` - Deep dive into state patterns for agents
+- `TASK3_IMPLEMENTATION_SUMMARY.md` - Quick reference for Task #3
 
 **Use When:**
 - Implementing dynamic family profiles
 - Setting up data persistence
 - Working on personalization features
+- Learning about agent state management patterns
 
 ---
 
@@ -105,26 +110,28 @@ This directory contains comprehensive documentation for the Family Manager proje
 
 ## Task Priorities
 
-### Phase 1: Immediate Improvements
-1. ✅ Fix weather location bug (Columbus, OH vs GA) - **COMPLETED**
-2. ✅ Update to latest OpenAI model (GPT-5.2) - **COMPLETED**
-3. **→ Dynamic children ages** (`01-personalization-and-state.md`, Task #1)
-4. **→ Children interests store** (`01-personalization-and-state.md`, Task #2)
+### Phase 1: Immediate Improvements ✅ COMPLETED
+1. ✅ Fix weather location bug (Columbus, OH vs GA)
+2. ✅ Update to latest OpenAI model (GPT-5.2)
+3. ✅ Dynamic children ages (`01-personalization-and-state.md`, Task #1)
+4. ✅ Children interests store (`01-personalization-and-state.md`, Task #2)
 
-### Phase 2: Expand Coverage
-5. **→ Franklin Park Conservatory scraper** (`02-event-scrapers.md`, Task #3)
-6. **→ Air Force Museum scraper** (`02-event-scrapers.md`, Task #8)
-7. Add remaining Priority 1 & 2 scrapers
+### Phase 2: Personalization & State ✅ COMPLETED
+5. ✅ Firestore schema design (`01-personalization-and-state.md`, Task #3)
+6. ✅ Recommendation history with state hydration
+7. ✅ ADC authentication for local development
 
-### Phase 3: Intelligence & State
-8. **→ Firestore schema design** (`01-personalization-and-state.md`, Task #12)
-9. **→ Recommendation history** (`03-ai-improvements.md`, Task #14)
-10. **→ Top 3 logic** (`03-ai-improvements.md`, Task #15)
+### Phase 3: Expand Coverage (IN PROGRESS)
+8. ✅ Franklin Park Conservatory scraper
+9. ✅ Air Force Museum scraper
+10. ✅ 10 venue scrapers implemented
+11. **→ COSI scraper** (`02-event-scrapers.md`)
+12. **→ Cedar Point scraper** (`02-event-scrapers.md`)
 
 ### Phase 4: Production Ready
-11. **→ GCP architecture** (`04-deployment-architecture.md`, Task #16)
-12. **→ Deployment configs** (`04-deployment-architecture.md`, Task #17)
-13. **→ Deploy to GCP** (`04-deployment-architecture.md`, Task #18)
+13. **→ GCP architecture** (`04-deployment-architecture.md`)
+14. **→ Deployment configs** (`04-deployment-architecture.md`)
+15. **→ Deploy to GCP** (`04-deployment-architecture.md`)
 
 ---
 
@@ -181,8 +188,20 @@ See individual doc files for:
 
 ## Related Files
 
+**Core Application:**
 - `/README.md` - Project overview and running instructions
-- `/requirements.txt` - Python dependencies
-- `/family_manager.py` - Main application code
-- `/events_tool_*.py` - Event scraper implementations
+- `/family_manager.py` - Main LangGraph pipeline
+- `/recommendation_db.py` - Firestore state management
+- `/family_config.py` - Family configuration (ages, interests)
 - `/weather_forecaster.py` - Weather tool
+
+**Event Scrapers:**
+- `/event_scrapers/` - All venue scrapers (10+ implementations)
+
+**Tests:**
+- `/tests/test_firestore_connection.py` - Firestore integration test
+- `/tests/test_family_config.py` - Family config tests
+
+**Configuration:**
+- `/requirements.txt` - Python dependencies
+- `/.env` - Environment variables (not in git)
