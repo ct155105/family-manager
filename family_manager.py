@@ -70,10 +70,18 @@ tools = [
 
 max_iterations = 15  # Increased from 5 to accommodate all 11 event scrapers
 recursion_limit = 2 * max_iterations + 1  # LangGraph requirement: 2 * max_iterations + 1
+
+# Main agent for activity recommendations (needs reasoning + tools)
 agent = create_react_agent(
     model="openai:gpt-5.2",
     tools=tools,
-    
+)
+
+# Model for HTML formatting (no reasoning or tools needed, but uses gpt-5.2 for quality)
+html_formatter = init_chat_model(
+    model="gpt-5.2",
+    model_provider="openai",
+    temperature=0.7  # Higher temperature for more creative/polished HTML formatting
 )
 
 def create_messages(state: State) -> list:
@@ -151,7 +159,15 @@ def get_ideas_for_today(state: State) -> str:
 
 def generate_newsletter_html(state: State) -> dict:
     """
-    Uses the AI agent to turn the raw_message into HTML suitable for a family newsletter.
+    Uses gpt-5.2 via direct call to turn the raw_message into HTML suitable for a family newsletter.
+    This is a simple text transformation task that doesn't require the ReAct agent or tools.
+
+    Using gpt-5.2 with direct call (no ReAct agent) provides:
+    - Faster response times (no ReAct loop overhead)
+    - Cleaner architecture (no unnecessary 11 event scraper tools in context)
+    - Same model quality as main agent, but more efficient for formatting tasks
+    - Temperature=0.7 enables creative/polished HTML with colors, sections, styling
+
     Returns a dict with the generated HTML under the 'html' key.
     """
     system_prompt = (
@@ -160,12 +176,15 @@ def generate_newsletter_html(state: State) -> dict:
         "Make the newsletter visually appealing and easy to read for parents. "
         "Do not include any code blocks or markdown, just return the HTML."
     )
+    user_prompt = f"Here are the activity suggestions for the family newsletter:\n\n{state['raw_message']}\n\nPlease format this as a beautiful HTML newsletter."
+
+    # Direct LLM call - no agent, no tools needed for simple formatting
     messages = [
         {"role": "system", "content": system_prompt},
-        {"role": "user", "content": f"Here are the activity suggestions for the family newsletter:\n\n{state['raw_message']}\n\nPlease format this as a beautiful HTML newsletter."}
+        {"role": "user", "content": user_prompt}
     ]
-    msg = agent.invoke({"messages":messages, "recursion_limit": recursion_limit})
-    html_response = msg["messages"][-1].content
+    response = html_formatter.invoke(messages)
+    html_response = response.content if hasattr(response, 'content') else str(response)
     return {"html": html_response}
 
 
