@@ -102,7 +102,7 @@ python family_manager.py
 
 1. **State Hydration**: Loads recent venues from Firestore to avoid repetitive suggestions
 2. **Weather Check**: Fetches weekend forecast for Columbus, OH
-3. **Event Scraping**: Queries 10+ venue scrapers for current events
+3. **Event Scraping**: Queries 19 venue scrapers for current events
 4. **AI Recommendations**: GPT-5.2 generates personalized suggestions based on:
    - Children's ages (dynamically calculated from `family_config.py`)
    - Children's interests (art, animals, science, etc.)

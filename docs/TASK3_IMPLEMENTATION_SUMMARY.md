@@ -18,10 +18,10 @@ We implemented a recommendation history system using Firestore to prevent repeti
    - Security best practices
    - Troubleshooting guide
 
-3. **[test_firestore_connection.py](../test_firestore_connection.py)**
+3. **[tests/test_firestore_connection.py](../tests/test_firestore_connection.py)**
    - Verify Firestore setup
    - Test read/write operations
-   - Helpful output for debugging
+   - Uses separate `recommendations_test` collection
 
 4. **[docs/AGENT_STATE_PATTERNS.md](AGENT_STATE_PATTERNS.md)** (400+ lines)
    - Comprehensive guide to state management patterns
@@ -106,27 +106,18 @@ pip install google-cloud-firestore
 ### 4. Test Setup
 
 ```bash
-python test_firestore_connection.py
+python tests/test_firestore_connection.py
 ```
 
 Expected output:
 ```
-🧪 Testing Firestore Connection
+🚀 Firestore Setup Verification
+📁 Using collection: recommendations_test (isolated from production)
 ✅ Successfully connected to Firestore!
-📍 Project: family-manager-xxxxx
-📁 Collection: recommendations
-
-🧪 Testing Write Operation
-✅ Successfully saved test recommendation!
-📄 Document ID: abc123...
-
-🧪 Testing Read Operation
-✅ Successfully retrieved recent venues!
-🏛️  Found 2 unique venues:
-   - Columbus Zoo
-   - Metro Parks
-
-🎉 All tests passed! Firestore is ready to use.
+📍 Project: your-project-id
+📁 Collection: recommendations_test
+✅ Using test collection (production data protected)
+🎉 All tests passed!
 ```
 
 ### 5. Run the Agent
