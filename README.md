@@ -10,19 +10,13 @@ This project is a **Generative AI-based assistant** that helps families decide w
 - 🌦 Weather-aware activity suggestions
 - 👨‍👩‍👧 Personalized based on dynamic family config (ages, interests)
 - 🔄 Recommendation history to avoid repetitive suggestions (Firestore)
-- 📍 Event lookups from real-world APIs:
-  - [x] Columbus Metro Parks
-  - [x] Columbus Zoo
-  - [x] Franklin Park Conservatory
-  - [x] Olentangy Caverns
-  - [x] Cincinnati Zoo
-  - [x] Newport Aquarium
-  - [x] Air Force Museum
-  - [x] Hocking Hills
-  - [x] Kings Island
-  - [x] The Wilds
-  - [ ] COSI (planned)
-  - [ ] Cedar Point (planned)
+- 📍 19 event scrapers for real-world venues:
+  - **Museums:** COSI, Air Force Museum, Franklin Park Conservatory
+  - **Zoos/Animals:** Columbus Zoo, Cincinnati Zoo, Newport Aquarium, The Wilds
+  - **Amusement Parks:** Kings Island, Cedar Point
+  - **Outdoors:** Metro Parks, Hocking Hills, Olentangy Caverns, Lynd Fruit Farm
+  - **Festivals:** Ohio Ren Fest, Ohio State Fair, Pumpkin Show
+  - **Sports/Entertainment:** Nationwide Arena, Schottenstein Center, Columbus Clippers
 - ⚙️ Modular agent/tool design using LangGraph
 
 ---
@@ -40,7 +34,7 @@ graph TD
 
   subgraph Tools
     B --> T1[Weather Forecast]
-    B --> T2[Event Scrapers x10]
+    B --> T2[Event Scrapers x19]
   end
 
   subgraph State Management

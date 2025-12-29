@@ -41,6 +41,15 @@ from event_scrapers import (
     get_airforce_museum_events,
     get_kings_island_events,
     get_hocking_hills_info,
+    # AI-assisted Priority 3 (New venues & festivals)
+    get_cosi_events,
+    get_cedar_point_events,
+    get_ohio_ren_fest_events,
+    get_ohio_state_fair_events,
+    get_pumpkin_show_events,
+    get_osu_events,
+    get_nationwide_arena_events,
+    get_clippers_events,
 )
 from email_client import gmail_send_message, gmail_create_draft
 from family_config import get_children_age_string, get_children_interests_string
@@ -69,9 +78,18 @@ tools = [
     get_airforce_museum_events,
     get_kings_island_events,
     get_hocking_hills_info,
+    # AI-assisted Priority 3 (New venues & festivals)
+    get_cosi_events,
+    get_cedar_point_events,
+    get_ohio_ren_fest_events,
+    get_ohio_state_fair_events,
+    get_pumpkin_show_events,
+    get_osu_events,
+    get_nationwide_arena_events,
+    get_clippers_events,
 ]
 
-max_iterations = 15  # Increased from 5 to accommodate all 11 event scrapers
+max_iterations = 25  # Increased to accommodate all 19 event scrapers
 recursion_limit = 2 * max_iterations + 1  # LangGraph requirement: 2 * max_iterations + 1
 
 # Main agent for activity recommendations (needs reasoning + tools)

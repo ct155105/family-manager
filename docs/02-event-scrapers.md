@@ -3,7 +3,7 @@
 ## Overview
 Expand the family assistant's venue knowledge by adding event scrapers for additional Ohio attractions.
 
-**Implementation Status:** Priority 1 & 2 COMPLETED (11 total scrapers)
+**Implementation Status:** Priority 1, 2 & 3 COMPLETED (19 total scrapers)
 **Implementation Approach:** AI-assisted scraping using LangChain WebBaseLoader + LLM extraction
 
 ## Current Event Scrapers
@@ -232,20 +232,182 @@ Expand the family assistant's venue knowledge by adding event scrapers for addit
 
 ---
 
-### Priority 3: Discovery & Research
+### AI-Assisted Scrapers - Priority 3 (New Venues & Festivals)
 
-#### 11. Additional Ohio Attractions
-**Status:** Not Started
+#### ✅ 12. COSI (Center of Science and Industry)
+**File:** `event_scrapers/events_tool_cosi.py`
+**URL:** https://cosi.org/experiences
+**Status:** ✅ COMPLETED (AI-assisted)
+**Implemented:** 2025-12-28
 
-**Potential Future Scrapers:**
-- COSI (Columbus) - science museum
-- Ohio State Fair (seasonal)
-- Blendon Woods Metro Park (nature center)
-- Highbanks Metro Park
-- Cedar Point (Sandusky - 2+ hours)
+**What It Scrapes:**
+- Current exhibits (temporary and permanent)
+- Planetarium shows and schedules
+- Live science demonstrations
+- WOSU PBS Kids area
+
+**Notes:**
+- Indoor venue - weather-proof
+- Great for science-loving kids
+- Planetarium shows have limited seating
+
+---
+
+#### ✅ 13. Cedar Point
+**File:** `event_scrapers/events_tool_cedar_point.py`
+**URL:** https://www.cedarpoint.com/events
+**Status:** ✅ COMPLETED (AI-assisted)
+**Implemented:** 2025-12-28
+
+**Distance:** ~2+ hours from Columbus (Sandusky, OH)
+
+**What It Scrapes:**
+- Operating calendar (seasonal)
+- Special events (HalloWeekends, WinterFest)
+- New rides and attractions
+- Concert series
+
+**Notes:**
+- Seasonal operation (May-Oct typically)
+- Full-day commitment
+- HalloWeekends not ideal for young children
+
+---
+
+#### ✅ 14. Ohio Renaissance Festival
+**File:** `event_scrapers/events_tool_ohio_ren_fest.py`
+**URL:** https://www.renfestival.com/
+**Status:** ✅ COMPLETED (AI-assisted)
+**Implemented:** 2025-12-28
+
+**Distance:** ~1 hour from Columbus (Waynesville, OH)
+
+**What It Scrapes:**
+- Festival dates (late Aug - Oct, weekends only)
+- Themed weekends (Pirate Weekend, Celtic Weekend, etc.)
+- Entertainment schedule
+- Ticket pricing
+
+**Notes:**
+- Seasonal: weekends only, late August through October
+- Rain or shine event
+- Very family-friendly, costume encouraged!
+
+---
+
+#### ✅ 15. Ohio State Fair
+**File:** `event_scrapers/events_tool_ohio_state_fair.py`
+**URL:** https://ohiostatefair.com/
+**Status:** ✅ COMPLETED (AI-assisted)
+**Implemented:** 2025-12-28
+
+**Location:** Ohio Expo Center, Columbus
+
+**What It Scrapes:**
+- Fair dates (late July/August, ~12 days)
+- Concert lineup
+- Special events and competitions
+- Family attractions
+
+**Notes:**
+- Annual event, late July/August
+- Very family-friendly
+- Rides cost extra beyond admission
+
+---
+
+#### ✅ 16. Circleville Pumpkin Show
+**File:** `event_scrapers/events_tool_pumpkin_show.py`
+**URL:** https://www.pumpkinshow.com/
+**Status:** ✅ COMPLETED (AI-assisted)
+**Implemented:** 2025-12-28
+
+**Distance:** ~30 min south of Columbus
+
+**What It Scrapes:**
+- Festival dates (mid-October, Wed-Sat)
+- Parade schedule
+- Giant pumpkin displays
+- Entertainment and food
+
+**Notes:**
+- FREE admission!
+- One of world's largest pumpkin festivals
+- Very crowded on weekends
+
+---
+
+#### ✅ 17. Ohio State University / Schottenstein Center
+**File:** `event_scrapers/events_tool_osu_events.py`
+**URL:** https://www.schottensteincenter.com/events
+**Status:** ✅ COMPLETED (AI-assisted)
+**Implemented:** 2025-12-28
+
+**Location:** OSU Campus, Columbus
+
+**What It Scrapes:**
+- Disney on Ice and family shows
+- OSU Basketball and Hockey
+- Concerts and performances
+- Family-friendly events
+
+**Notes:**
+- Indoor venue
+- Parking available in campus lots
+- Great gameday atmosphere even without tickets
+
+---
+
+#### ✅ 18. Nationwide Arena
+**File:** `event_scrapers/events_tool_nationwide_arena.py`
+**URL:** https://www.nationwidearena.com/events
+**Status:** ✅ COMPLETED (AI-assisted)
+**Implemented:** 2025-12-28
+
+**Location:** Arena District, Downtown Columbus
+
+**What It Scrapes:**
+- Columbus Blue Jackets hockey
+- Concerts and shows
+- Disney on Ice, WWE, family shows
+- Comedy and special events
+
+**Notes:**
+- Indoor venue
+- Arena District has great dining options
+- Family sections available for hockey
+
+---
+
+#### ✅ 19. Columbus Clippers
+**File:** `event_scrapers/events_tool_clippers.py`
+**URL:** https://www.milb.com/columbus/schedule
+**Status:** ✅ COMPLETED (AI-assisted)
+**Implemented:** 2025-12-28
+
+**Location:** Huntington Park, Downtown Columbus
+
+**What It Scrapes:**
+- Game schedule (April-September)
+- Themed nights and promotions
+- Fireworks nights
+- Giveaways and special events
+
+**Notes:**
+- AAA baseball - affordable family entertainment
+- Fireworks after many Friday/Saturday games
+- Kids can run the bases on Sundays
+
+---
+
+### Future Scrapers (Research)
+
+**Potential additions:**
 - Rock and Roll Hall of Fame (Cleveland - 2+ hours)
 - Pro Football Hall of Fame (Canton)
-- Local festivals and seasonal events
+- Blendon Woods / Highbanks Metro Parks
+- Columbus Crew (MLS soccer)
+- Minor league hockey / other sports
 
 ---
 
