@@ -3,106 +3,88 @@
 ## Overview
 Enhance the AI agent's recommendation logic to provide more relevant, diverse, and personalized suggestions.
 
-## Current State
+## Current State (Updated December 2025)
 
 ### Agent Configuration
-- **Model:** `gpt-5.2` (updated from gpt-4.1)
+- **Model:** `gpt-5.2`
 - **Framework:** LangGraph with ReAct agent
-- **Tools:** Weather, Metro Parks events, Zoo events, Lynd Fruit Farm events, today's date
-- **Max Iterations:** 5
-- **Recursion Limit:** 11
+- **Tools:** 19 event scrapers (see `02-event-scrapers.md`)
+- **Max Iterations:** 25
+- **Recursion Limit:** 51
 
-### Current System Prompt
-```python
-SYSTEM_PROMPT = (
-    "You are a helpful family weekend planning assistant. "
-    "The family has 3 children, ages 3, 5, and 7. The kids go to bed at 8. "
-    "Always ensure that any recommendations for plans take into account the weather forecast, "
-    "and only suggest activities that are suitable for the expected weather conditions. "
-    "If the user asks for a plan, check the weather first and mention it in your response. "
-    "Check for events in the Columbus Metro Parks and suggest them if they are suitable for the weather. "
-    "Check for events at the Columbus Zoo and suggest them if they are suitable for the weather. "
-    "Check for events at Lynd Fruit Farm and suggest them if they are suitable for the weather. "
-    "If the weather is not suitable for outdoor activities, suggest indoor alternatives. "
-    "Recommend no more than 3 activities per day, and ensure they are family-friendly. "
-    "Recommend other activites around the Columbus area that are suitable for the weather. "
-)
-```
+### Current Architecture
+The system prompt is now **dynamically generated** in `create_messages()` with:
+- Pre-fetched weather forecast (State Hydration Pattern)
+- Dynamic children ages from `family_config.py`
+- Children interests from `family_config.py`
+- Recent venue history from Firestore (to avoid repetition)
+
+See `family_manager.py:create_messages()` for the full implementation.
 
 ---
 
 ## Task 14: Use Recommendation History
 
-**Status:** Not Started  
-**Dependencies:** Task #13 (Firestore integration)  
+**Status:** ✅ COMPLETED (2025-12-26)
+**Dependencies:** Task #3 (Firestore integration)
 **Priority:** Medium
 
 ### Objective
 Enable the AI to avoid suggesting recently visited venues or repeated recommendations.
 
-### Implementation
+### What Was Implemented
+
+We chose **State Hydration** over the tool-based approach proposed below. This is a better pattern because:
+- Agent can't "forget" to check history (always in system prompt)
+- Fewer LLM calls (cheaper, faster)
+- 100% of runs need this data
+
+**Implementation in `family_manager.py:create_messages()`:**
+```python
+# Pre-fetch recommendation history (State Hydration Pattern)
+recently_visited = get_recently_visited_venues(days=30)
+if recently_visited:
+    recent_venues_text = f"""
+RECENT ACTIVITY HISTORY (last 30 days):
+You recently suggested these venues: {', '.join(recently_visited)}
+Please suggest DIFFERENT venues this time to keep activities fresh and exciting.
+"""
+
+# Inject into system prompt
+SYSTEM_PROMPT = f"""...{recent_venues_text}..."""
+```
+
+**Why State Hydration beats Tool-based approach:**
+| Factor | State Hydration (chosen) | Tool-based (original proposal) |
+|--------|--------------------------|-------------------------------|
+| Reliability | Always included | Agent might forget to call |
+| Cost | 1 fewer LLM call | Extra tool call |
+| Latency | Faster | Slower |
+| Complexity | Simpler | More code |
+
+### Original Proposal (Not Implemented - For Reference Only)
+
+<details>
+<summary>Click to see original tool-based proposal</summary>
 
 1. **Add History Retrieval Tool:**
 ```python
-from langchain_core.tools import tool
-
 @tool("get_recent_recommendations")
 def get_recent_recommendations(days: int = 30) -> str:
-    """
-    Retrieves recommendations from the last N days to avoid repeating suggestions.
-    Returns a summary of recently recommended venues and events.
-    """
-    from database.firestore_client import get_recommendations_since
-    from datetime import datetime, timedelta
-    
-    cutoff = datetime.now() - timedelta(days=days)
-    recent = get_recommendations_since(cutoff)
-    
-    if not recent:
-        return "No recent recommendations found."
-    
-    venues = set()
-    events = set()
-    
-    for rec in recent:
-        venues.update(rec.get('venues', []))
-        events.update(rec.get('events', []))
-    
-    return json.dumps({
-        'recently_visited_venues': list(venues),
-        'recently_attended_events': list(events),
-        'recommendation_count': len(recent)
-    }, indent=2)
+    # ... tool implementation
 ```
 
-2. **Update System Prompt:**
-```python
-SYSTEM_PROMPT = (
-    # ... existing prompt ...
-    "Before making recommendations, check the recent recommendation history "
-    "to avoid suggesting places the family has recently visited. "
-    "Prioritize NEW and DIFFERENT experiences when possible. "
-    "If a venue was recommended in the last 2 weeks, choose alternatives unless "
-    "there's a compelling new event or reason to revisit. "
-)
-```
+2. **Update System Prompt to mention the tool**
 
-3. **Add Tool to Agent:**
-```python
-tools = [
-    get_weekend_forecast,
-    get_today_date,
-    get_recent_recommendations,  # NEW
-    # ... event tools ...
-]
-```
+3. **Add Tool to Agent**
+</details>
 
 ---
 
 ## Task 15: Top 3 Recommendations Logic
 
-**Status:** Not Started  
-**Priority:** High
+**Status:** ⏸️ DEFERRED (Optional Enhancement)
+**Priority:** Low
 
 ### Objective
 Ensure AI consistently provides exactly 3 well-reasoned recommendations ranked by suitability.
@@ -198,57 +180,28 @@ def finalize_recommendations(
 
 ## Additional Improvements
 
-### A. Better Tool Descriptions
+### A. Better Tool Descriptions - ⏸️ DEFERRED
 
-Update tool descriptions to help AI understand when to use each:
+Current tool descriptions are adequate. Could be enhanced if agent makes poor tool choices.
 
-```python
-@tool(
-    "get_weekend_forecast",
-    description=(
-        "Get detailed weather forecast for Columbus, OH for the next 3 days. "
-        "Use this FIRST before making any activity recommendations. "
-        "Returns temperature highs/lows and conditions (rain, clouds, etc)."
-    )
-)
-```
+### B. Reasoning Effort Configuration - ❌ NOT APPLICABLE
 
-### B. Reasoning Effort Configuration
+The `reasoning_effort` parameter was specific to o1 models. GPT-5.2 uses different configuration.
 
-For GPT-5.2, configure reasoning effort:
+### C. Memory and Context - ❌ NOT NEEDED
 
-```python
-agent = create_react_agent(
-    model="openai:gpt-5.2",
-    tools=tools,
-    model_kwargs={
-        "reasoning_effort": "medium"  # or "high" for complex decisions
-    }
-)
-```
+Our application runs single-shot (one request → one newsletter). No multi-turn conversation needed.
+If we add interactive chat mode in the future, revisit this.
 
-### C. Memory and Context
+### D. Evaluation Metrics - See `03-model-evals.md`
 
-Add conversation memory to track what was asked:
-
-```python
-from langgraph.checkpoint.memory import MemorySaver
-
-memory = MemorySaver()
-agent = create_react_agent(
-    model="openai:gpt-5.2",
-    tools=tools,
-    checkpointer=memory
-)
-```
-
-### D. Evaluation Metrics
-
-Track recommendation quality:
+For tracking recommendation quality, see the dedicated model evals documentation:
 - Weather alignment score
 - Age-appropriateness score
 - Interest alignment score
 - Diversity score (how different from recent)
+
+**Recommendation:** Implement `03-model-evals.md` before this file's remaining tasks.
 
 ---
 

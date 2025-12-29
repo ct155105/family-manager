@@ -27,7 +27,7 @@ This directory contains comprehensive documentation for the Family Manager proje
 ---
 
 ### 02. Event Scrapers Implementation
-**File:** `02-event-scrapers.md`
+**File:** `02-event-scrapers.md` | **Status:** ✅ COMPLETED (19 scrapers)
 
 **Topics Covered:**
 - Current and planned event scrapers
@@ -41,35 +41,44 @@ This directory contains comprehensive documentation for the Family Manager proje
 - Understanding scraper architecture
 - Planning Ohio attractions coverage
 
-**Venues Documented:**
-- Franklin Park Conservatory
-- Olentangy Caverns
-- The Wilds
-- Cincinnati Zoo
-- Newport Aquarium
-- Wright-Patterson Air Force Museum
-- Kings Island
-- Hocking Hills
-- Plus research items (COSI, Cedar Point, etc.)
+**Venues Documented (19 total):**
+- Columbus Area: Metro Parks, Zoo, Lynd Fruit Farm, Conservatory, Olentangy Caverns, The Wilds
+- Regional: Cincinnati Zoo, Newport Aquarium, Air Force Museum, Kings Island, Hocking Hills
+- Priority 3: COSI, Cedar Point, Ohio Ren Fest, State Fair, Pumpkin Show, Schottenstein, Nationwide Arena, Clippers
 
 ---
 
 ### 03. AI Agent Improvements
-**File:** `03-ai-improvements.md`
+**File:** `03-ai-improvements.md` | **Status:** ⏸️ DEFERRED
 
 **Topics Covered:**
-- Current agent configuration
-- Using recommendation history to avoid repeats
-- Top 3 recommendations logic
-- Enhanced system prompts
-- Reasoning effort configuration
-- Quality evaluation metrics
+- ✅ Using recommendation history (Task 14 - implemented via State Hydration)
+- ⏸️ Top 3 recommendations logic (Task 15 - optional enhancement)
+- ⏸️ Enhanced system prompts (deferred)
 
 **Use When:**
-- Improving recommendation quality
+- Improving recommendation quality beyond current implementation
 - Adjusting AI behavior
-- Implementing ranking logic
-- Integrating with recommendation history
+- Implementing structured output
+
+---
+
+### 03b. Model Evaluations (Evals)
+**File:** `03-model-evals.md` | **Status:** 📋 PLANNED
+
+**Topics Covered:**
+- LLM-as-Judge evaluation pattern
+- Agent quality evals (weather-appropriate, age-appropriate, personalized)
+- Scraper quality evals (valid JSON, coherent data)
+- Automated weekly eval runs
+- Regression detection
+
+**Use When:**
+- Ensuring recommendation quality doesn't regress
+- Testing agent behavior across scenarios
+- Validating scraper output quality
+
+**Recommended Next Step:** This is the highest-value improvement for quality assurance.
 
 ---
 
@@ -121,17 +130,20 @@ This directory contains comprehensive documentation for the Family Manager proje
 6. ✅ Recommendation history with state hydration
 7. ✅ ADC authentication for local development
 
-### Phase 3: Expand Coverage (IN PROGRESS)
+### Phase 3: Expand Coverage ✅ COMPLETED
 8. ✅ Franklin Park Conservatory scraper
 9. ✅ Air Force Museum scraper
-10. ✅ 10 venue scrapers implemented
-11. **→ COSI scraper** (`02-event-scrapers.md`)
-12. **→ Cedar Point scraper** (`02-event-scrapers.md`)
+10. ✅ Priority 2 scrapers (Cincinnati Zoo, Newport Aquarium, Kings Island, Hocking Hills)
+11. ✅ COSI scraper
+12. ✅ Cedar Point scraper
+13. ✅ Festival scrapers (Ohio Ren Fest, State Fair, Pumpkin Show)
+14. ✅ Sports/Entertainment scrapers (Schottenstein, Nationwide Arena, Clippers)
+15. ✅ **19 total scrapers implemented!**
 
 ### Phase 4: Production Ready
-13. **→ GCP architecture** (`04-deployment-architecture.md`)
-14. **→ Deployment configs** (`04-deployment-architecture.md`)
-15. **→ Deploy to GCP** (`04-deployment-architecture.md`)
+16. **→ GCP architecture** (`04-deployment-architecture.md`)
+17. **→ Deployment configs** (`04-deployment-architecture.md`)
+18. **→ Deploy to GCP** (`04-deployment-architecture.md`)
 
 ---
 
@@ -196,7 +208,7 @@ See individual doc files for:
 - `/weather_forecaster.py` - Weather tool
 
 **Event Scrapers:**
-- `/event_scrapers/` - All venue scrapers (10+ implementations)
+- `/event_scrapers/` - All venue scrapers (19 implementations)
 
 **Tests:**
 - `/tests/test_firestore_connection.py` - Firestore integration test
